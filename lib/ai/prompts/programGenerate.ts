@@ -131,6 +131,7 @@ ${dayRequirements}
 - Keep each day within ${params.sessionMinutes} minutes, assuming the prescribed rest periods. If fitting every required pattern is tight, use single-set or shorter-rest entries for the smaller/isolation patterns (e.g. pull_v, core) rather than dropping them.
 - Respect the stated limitations absolutely. If a limitation rules out a movement pattern, substitute a different exercise within the SAME pattern — never drop the pattern.
 - Compound movements first in each day, heaviest first.
+- reps_high must be an integer between 1 and 30 for EVERY exercise, with no exceptions — this includes high-rep bodyweight and core work (mountain climbers, bicycle crunches, etc). If an exercise is normally programmed for time rather than reps (e.g. a plank hold), still give a rep count of 30 or fewer and let sets/rest carry the volume, rather than writing a rep count above 30.
 - This is week 1 only — do not describe progression across weeks, that is handled separately.
 - If the athlete is a beginner, keep RPE targets conservative (6.5-7.5) for week 1.
 

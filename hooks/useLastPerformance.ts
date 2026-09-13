@@ -17,6 +17,11 @@ export function useLastPerformance(exerciseIds: string[]) {
       const supabase = createClient();
       if (!supabase || exerciseIds.length === 0) return {} as Record<string, LastPerformance>;
 
+      // See the comment in useHabits.ts — this fires on mount, the same
+      // race window where the browser client's session cookie can still be
+      // parsing when the request goes out.
+      await supabase.auth.getSession();
+
       const { data } = await supabase
         .from("set_logs")
         .select("exercise_id, load_kg, reps, rpe, completed_at")

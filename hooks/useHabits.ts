@@ -15,6 +15,15 @@ export function useHabits(userId: string | undefined) {
       const supabase = createClient();
       if (!supabase || !userId) return [] as HabitWithLogs[];
 
+      // @supabase/ssr's browser client parses the session cookie
+      // asynchronously; a query fired the instant this hook mounts (no user
+      // interaction precedes it, unlike most other client-side fetches in
+      // this app) can race that parse and go out with no Authorization
+      // header, so RLS silently returns an empty — but still 200 — result.
+      // Awaiting getSession() first forces the auth state to resolve before
+      // any RLS-scoped request is made.
+      await supabase.auth.getSession();
+
       const { data: habits } = await supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null).order("sort_index");
       const habitIds = (habits ?? []).map((h) => h.id);
       if (habitIds.length === 0) return [];

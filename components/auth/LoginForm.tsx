@@ -21,7 +21,11 @@ export function LoginForm({ next }: { next?: string }) {
     }
     setStatus("sending");
     setError(null);
-    const redirectTo = `${window.location.origin}/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ""}`;
+    // emailRedirectTo is the FINAL destination after verification, not the
+    // confirm page itself — the email template builds the actual
+    // /auth/confirm?token_hash=...&next=... link using {{ .RedirectTo }} as
+    // the next param (see the "Magic link or OTP" template in Supabase).
+    const redirectTo = `${window.location.origin}${next ?? "/today"}`;
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectTo },

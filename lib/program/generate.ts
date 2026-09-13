@@ -139,6 +139,17 @@ async function generateAndValidate(params: GenerateProgramParams & { eligibleExe
     return parseJson(GeneratedWeek1Schema, response.text, "program generation");
   }
 
+  // Two sequential Gemini calls have been observed taking ~25-30s each in
+  // production — comfortably fine alone, but back-to-back they can exceed
+  // this route's 60s Vercel function ceiling entirely, turning what should
+  // be a graceful template fallback into a hard 504 with no response at
+  // all. Track the wall-clock budget and skip the retry once there isn't
+  // realistically enough time left for a second full call plus the
+  // persistence writes after it — falling back is always safe; timing out
+  // the whole request is not.
+  const startedAt = Date.now();
+  const RETRY_BUDGET_MS = 25_000;
+
   let candidate = await callOnce();
   let violations = validateWeek1({
     week: candidate,
@@ -149,7 +160,7 @@ async function generateAndValidate(params: GenerateProgramParams & { eligibleExe
     limitations: params.limitations,
   });
 
-  if (violations.length > 0) {
+  if (violations.length > 0 && Date.now() - startedAt < RETRY_BUDGET_MS) {
     candidate = await callOnce(buildRetryAppendix(violations));
     violations = validateWeek1({
       week: candidate,

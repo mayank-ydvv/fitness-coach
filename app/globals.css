@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@theme {
+  /* Nuke Tailwind's default palette so `bg-slate-800` stops compiling and
+     the token system below is enforced, not advisory. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* ---- Surfaces (spec: --surface-base / --surface-raised / --surface-sunken) ---- */
+  --color-surface-base: #16181a;
+  --color-surface-raised: #1e2124;
+  --color-surface-sunken: #101113;
+  --color-hairline: #2c3034;
+
+  /* ---- Ink (spec: --ink-primary / --ink-muted) ---- */
+  --color-ink-primary: #f2f0ed;
+  --color-ink-muted: #8b8f94;
+  --color-ink-inverse: #101113;
+
+  /* ---- Intensity scale, borrowed from IWF calibrated-plate colours.
+     Encodes load / RPE / confidence / form-fault severity ONLY. Never
+     decorative, always paired with a number or text label
+     (see components/ui/StatusDot.tsx — `label` is non-optional). ---- */
+  --color-load-green: #4a9e5c; /* light / RPE 5-6 / deload */
+  --color-load-yellow: #e0b33c; /* moderate / RPE 7 / over-target (never red) */
+  --color-load-blue: #3d7fd4; /* heavy / RPE 8 */
+  --color-load-red: #c8443c; /* max / RPE 9-10 / form fault */
+
+  --color-load-green-soft: color-mix(in oklab, #4a9e5c 14%, transparent);
+  --color-load-yellow-soft: color-mix(in oklab, #e0b33c 14%, transparent);
+  --color-load-blue-soft: color-mix(in oklab, #3d7fd4 14%, transparent);
+  --color-load-red-soft: color-mix(in oklab, #c8443c 14%, transparent);
+
+  /* ---- Interactive action colours — deliberately distinct from the
+     load-* intensity scale above, which spec §3 scopes to "load bars,
+     chart series, and RPE badges", not button fills. Verified by hand
+     (WCAG relative-luminance formula) against --color-ink-primary text:
+     even pure white on the spec's exact load-blue (#3D7FD4) only reaches
+     4.05:1, below the 4.5:1 AA text threshold — axe caught this on
+     Button's primary/danger variants and SegmentedControl's checked
+     state. These two are darkened just enough to clear 4.5:1 (4.88:1 and
+     4.85:1 respectively) while staying recognisably blue/red. ---- */
+  --color-action: #3568b0;
+  --color-action-danger: #b93d35;
+
+  --color-focus: #3d7fd4;
+
+  /* ---- Fonts. Values are the next/font CSS vars set on <html> (app/layout.tsx). ---- */
+  --font-ui: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-metric: var(--font-barlow-condensed), var(--font-public-sans), sans-serif;
+
+  /* ---- Type scale: 0.75 / 0.875 / 1 / 1.25 / 1.5 / 2 / 3 / 4.5 rem ---- */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.35;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.15;
+  --text-2xl: 2rem;
+  --text-2xl--line-height: 1.15;
+  --text-2xl--tracking: -0.02em;
+  --text-3xl: 3rem;
+  --text-3xl--line-height: 1.05;
+  --text-3xl--tracking: -0.02em;
+  --text-4xl: 4.5rem;
+  --text-4xl--line-height: 1;
+  --text-4xl--tracking: -0.02em;
+
+  /* Dashboard hero numeral: 56px at 360px wide -> 72px on desktop. Resolves
+     "56-72px" and "must work at 360px" in one declaration. */
+  --text-metric: clamp(3.5rem, 12vw, 4.5rem);
+  --text-metric--line-height: 1;
+  --text-metric--tracking: -0.02em;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The single guarantee that no numeral renders without tabular-nums — pair
+   with `font-metric` on any element showing a number. */
+@utility metric {
+  font-family: var(--font-metric);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+html {
+  background: var(--color-surface-base);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-surface-base);
+  color: var(--color-ink-primary);
+  font-family: var(--font-ui);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.15;
+}
+
+p,
+li {
+  max-width: 68ch;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

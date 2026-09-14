@@ -1,4 +1,5 @@
 import { Metric } from "@/components/ui/Metric";
+import { Card } from "@/components/ui/Card";
 
 /**
  * The hero metric. When hideEnergy is on, this is a genuinely different
@@ -24,7 +25,7 @@ export function EnergyRing({
   fraction: number;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 py-4">
+    <Card className="flex flex-col items-center gap-4 py-8 shadow-floating">
       <div className="flex flex-col items-center">
         <Metric value={remainingLabel} size="hero" />
         <span className="text-sm text-ink-muted">kcal left{targetLabel ? ` of ${targetLabel}` : ""}</span>
@@ -32,6 +33,6 @@ export function EnergyRing({
       <div className="h-2 w-full max-w-56 overflow-hidden rounded-full bg-surface-sunken">
         <div className="h-full rounded-full bg-action" style={{ width: `${Math.min(1, Math.max(0, fraction)) * 100}%` }} />
       </div>
-    </div>
+    </Card>
   );
 }

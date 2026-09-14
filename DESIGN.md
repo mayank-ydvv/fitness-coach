@@ -1326,3 +1326,40 @@ Today) in the browser as a real guest session, including at 360px
 (the spec's floor) on the longest title, "Exercise library" — no
 wrapping or horizontal scroll. `npx tsc --noEmit` and `npm run lint`
 clean.
+
+## §29 A warmer inner app — icon badges, an elevated hero, tactile nav (2026-09-15)
+
+§28's heading fix wasn't enough — the user wanted the inside of the
+app to actually feel more attractive, not just the page titles
+relabeled. Re-screenshotted Today as a real guest and found the real
+flatness: every icon on the page (empty states, the next-session
+prompt, recent meals) was a bare `text-ink-muted` glyph, and the day's
+single most important number — kcal remaining — sat directly on the
+page background with no card grounding at all, while every other
+piece of content on the same screen was inside a `Card`.
+
+Added `components/ui/IconBadge.tsx`: a `size-14`/`size-11` circle at
+`bg-action/10 text-action` — the one accent colour at low opacity,
+deliberately never a `load-*` token, so it can't be confused with
+`StatusDot`'s load-scale meaning (spec §3's "colour never decorative"
+guardrail applies to that scale specifically, not to the single brand
+accent). Wired into `EmptyState` itself (so Train/Eat/Habits/Progress
+all picked it up in one place), plus the three Today components that
+had their own bespoke empty/icon markup instead of using `EmptyState`
+directly (`NextSessionCard`, `RecentMeals`, `TodayHabits`) — including
+`NextSessionCard`'s populated state, which got a small badge too so
+both states of the same card read as one family rather than one
+polished and one bare.
+
+Wrapped `EnergyRing` and `MacroOnlyHero` — Today's hero metric, in
+either the calorie or hide-energy variant — in a `Card
+shadow-floating`, matching the elevation `NextSessionCard` already
+uses for "the one thing on this page you're meant to look at first."
+It was the only content on Today floating with no card at all.
+
+Bottom nav and left rail: the active tab's icon now sits inside a
+small `bg-action/10` pill instead of just changing the icon's own
+colour — the same soft-accent-circle language as `IconBadge`, so the
+nav feels like part of the same system rather than a plain colour
+swap. Verified as a real guest session across Today/Train/Progress;
+`npx tsc --noEmit` and `npm run lint` clean.

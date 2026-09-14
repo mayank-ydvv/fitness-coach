@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Salad } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { IconBadge } from "@/components/ui/IconBadge";
 import { StatusDot } from "@/components/ui/StatusDot";
 
 type Meal = { id: string; name: string; kcalLabel: string | null };
@@ -8,8 +9,8 @@ type Meal = { id: string; name: string; kcalLabel: string | null };
 export function RecentMeals({ meals }: { meals: Meal[] }) {
   if (meals.length === 0) {
     return (
-      <Card className="flex flex-col items-center gap-3 text-center">
-        <Salad size={24} className="text-ink-muted" />
+      <Card className="flex flex-col items-center gap-4 py-2 text-center">
+        <IconBadge icon={<Salad size={24} />} />
         <p className="text-sm text-ink-muted">Nothing logged yet. Photograph your next meal and it&apos;ll land here.</p>
         <Link href="/eat" className="text-sm font-medium text-ink-primary underline underline-offset-2">
           Log a meal

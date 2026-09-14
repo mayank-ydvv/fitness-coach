@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { IconBadge } from "@/components/ui/IconBadge";
 import { StartSessionButton } from "@/components/train/StartSessionButton";
 
 /**
@@ -25,8 +26,8 @@ export function NextSessionCard({
 }) {
   if (!session) {
     return (
-      <Card className="flex flex-col items-center gap-3 text-center">
-        <Dumbbell size={24} className="text-ink-muted" />
+      <Card className="flex flex-col items-center gap-4 py-2 text-center">
+        <IconBadge icon={<Dumbbell size={24} />} />
         <p className="text-sm text-ink-muted">No program yet. Build one from your goals and equipment.</p>
         <Link href="/train">
           <Button variant="secondary">Build a program</Button>
@@ -36,13 +37,16 @@ export function NextSessionCard({
   }
 
   return (
-    <Card className="flex flex-col gap-3 shadow-floating">
-      <div>
-        <p className="text-sm text-ink-muted">Today&apos;s session</p>
-        <p className="text-lg font-medium text-ink-primary">{session.name}</p>
-        <p className="text-sm text-ink-muted">
-          {session.exerciseCount} exercises{session.estimatedMinutes ? `, about ${session.estimatedMinutes} minutes` : ""}
-        </p>
+    <Card className="flex flex-col gap-4 shadow-floating">
+      <div className="flex items-start gap-3.5">
+        <IconBadge icon={<Dumbbell size={20} />} size="md" />
+        <div>
+          <p className="text-sm text-ink-muted">Today&apos;s session</p>
+          <p className="text-lg font-medium text-ink-primary">{session.name}</p>
+          <p className="text-sm text-ink-muted">
+            {session.exerciseCount} exercises{session.estimatedMinutes ? `, about ${session.estimatedMinutes} minutes` : ""}
+          </p>
+        </div>
       </div>
       {session.plannedWorkoutId ? (
         <StartSessionButton plannedWorkoutId={session.plannedWorkoutId} />

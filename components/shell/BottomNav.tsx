@@ -22,9 +22,11 @@ export function BottomNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className="flex min-h-11 flex-col items-center justify-center gap-1 py-2 text-ink-muted aria-[current=page]:text-ink-primary"
+                className="flex min-h-11 flex-col items-center justify-center gap-0.5 py-2 text-ink-muted aria-[current=page]:text-ink-primary"
               >
-                <Icon size={22} className={cn(active && "text-action")} />
+                <span className={cn("flex size-9 items-center justify-center rounded-full transition-colors duration-[var(--duration-feedback)]", active && "bg-action/10")}>
+                  <Icon size={20} className={cn(active && "text-action")} />
+                </span>
                 <span className="text-xs font-medium">{item.label}</span>
               </Link>
             </li>

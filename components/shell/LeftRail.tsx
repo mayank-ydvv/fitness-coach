@@ -24,7 +24,7 @@ export function LeftRail() {
             aria-current={active ? "page" : undefined}
             className={cn(
               "flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-medium text-ink-muted hover:text-ink-primary",
-              active && "bg-surface-sunken text-ink-primary",
+              active && "bg-action/10 text-ink-primary",
             )}
           >
             <Icon size={20} className={cn(active && "text-action")} />

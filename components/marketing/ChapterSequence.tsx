@@ -20,6 +20,16 @@ import { EASE } from "@/lib/motion/tokens";
  * FAQ and the closing CTA, further down the page, also stay outside
  * this — an accordion and a final CTA aren't narrative beats.
  */
+/**
+ * Each chapter's `bg` is a real photo related to its topic (see
+ * DESIGN.md §27) — five free-license Unsplash photos picked one
+ * chapter at a time with the user reviewing 2-4 candidates per chapter
+ * before each was confirmed, matching the brief's original "different
+ * media per chapter" mechanic now that photography actually exists for
+ * this app (§18/§26 only had it for Hero). A shared dark scrim (see
+ * `ChapterBackground`) keeps text legible and gives the varying source
+ * photos a consistent look, the same technique Hero already uses.
+ */
 const CHAPTERS = [
   {
     n: "01",
@@ -27,6 +37,7 @@ const CHAPTERS = [
     anchor: "onboarding",
     title: "Start with where you are",
     body: "Height, weight, goal, how much time you have. No BMI verdict, no dream-body questions — just what the plan needs.",
+    bg: "/images/chapters/onboarding.jpg",
   },
   {
     n: "02",
@@ -34,6 +45,7 @@ const CHAPTERS = [
     anchor: "today",
     title: "Know what to do today",
     body: "One next action above everything else. Someone opening the app at 7am knows what to do without reading.",
+    bg: "/images/chapters/today.jpg",
   },
   {
     n: "03",
@@ -41,6 +53,7 @@ const CHAPTERS = [
     anchor: "training",
     title: "Train with a plan that adapts",
     body: "Large numbers, one-tap logging, a rest timer that takes over the screen. Built for sweaty hands, not a desk.",
+    bg: "/images/chapters/training.jpg",
   },
   {
     n: "04",
@@ -48,6 +61,7 @@ const CHAPTERS = [
     anchor: "progress",
     title: "Watch it add up",
     body: "A smoothed trend line, not daily noise. Strength, consistency, and weight — read together, not scattered across screens.",
+    bg: "/images/chapters/progress.jpg",
   },
   {
     n: "05",
@@ -55,6 +69,7 @@ const CHAPTERS = [
     anchor: "every-age",
     title: "Built for every age.",
     body: "Whether this is your first week of exercise or your twentieth year training, the plan starts from your numbers, not an average.",
+    bg: "/images/chapters/every-age.jpg",
   },
 ] as const;
 
@@ -117,6 +132,23 @@ function PinnedChapters() {
       style={{ height: `${CHAPTERS.length * 100}vh` }}
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-surface-inverse">
+        {/* Background photo crossfades on its own — unlike the
+            foreground copy/mockup (see the AnimatePresence below and
+            DESIGN.md §21), a brief photo-on-photo blend during the
+            transition reads fine; it's dense text and card mockups
+            that don't tolerate blending, not photography. */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`bg-${chapter.n}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE.standard }}
+            className="absolute inset-0"
+          >
+            <ChapterBackground src={chapter.bg} />
+          </motion.div>
+        </AnimatePresence>
         <ChapterAtmosphere />
         <AnimatePresence mode="wait">
           <motion.div
@@ -156,26 +188,40 @@ function PinnedChapters() {
   );
 }
 
-/** A faint grain + soft accent glow across the whole dark panel so it
- * doesn't read as an empty void around the copy/visual — the stand-in
- * for the full-bleed photography the brief's original mechanic assumes,
- * since no such photography exists for this app (see DESIGN.md §18). */
-function ChapterAtmosphere() {
+/**
+ * The chapter's photo plus a diagonal dark scrim — the same technique
+ * Hero uses (see Hero.tsx), so the five source photos (which vary in
+ * brightness/tone — a bright barbell close-up next to a misty swim
+ * shot) still read as one consistent set rather than five different
+ * sources, and the left-aligned copy stays legible regardless of what
+ * the underlying photo looks like there.
+ */
+function ChapterBackground({ src }: { src: string }) {
   return (
     <>
+      <div aria-hidden className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-40 top-1/2 size-[560px] -translate-y-1/2 rounded-full bg-action opacity-[0.12] blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
-        }}
+        className="absolute inset-0 bg-[linear-gradient(115deg,rgba(22,20,15,0.82)_0%,rgba(22,20,15,0.62)_42%,rgba(22,20,15,0.4)_100%)]"
       />
     </>
+  );
+}
+
+/** A faint grain over the whole dark panel — texture over the photo
+ * scrim, same technique as Hero's own grain-free scrim but here it
+ * also helps disguise JPEG compression across five different source
+ * photos at a consistent light touch. */
+function ChapterAtmosphere() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 opacity-[0.05] mix-blend-overlay"
+      style={{
+        backgroundImage:
+          "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")",
+      }}
+    />
   );
 }
 
@@ -197,18 +243,19 @@ function ChapterGlow() {
 function StackedChapters() {
   return (
     <section className="relative flex flex-col gap-3 overflow-x-hidden bg-surface-inverse py-3">
-      <ChapterAtmosphere />
       {CHAPTERS.map((c, i) => (
         <div
           key={c.n}
           id={c.anchor}
-          className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 px-5 py-16 text-center"
+          className="relative flex min-h-[70vh] flex-col items-center justify-center gap-8 overflow-hidden px-5 py-16 text-center"
         >
+          <ChapterBackground src={c.bg} />
+          <ChapterAtmosphere />
           <div className="relative flex justify-center">
             <ChapterGlow />
             <ChapterVisual index={i} />
           </div>
-          <div className="max-w-md">
+          <div className="relative max-w-md">
             <p className="metric text-sm text-ink-on-brand/50">
               {c.n} <span className="ml-2 font-ui text-ink-on-brand/40">{c.kicker}</span>
             </p>

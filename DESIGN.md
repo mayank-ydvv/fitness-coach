@@ -1231,3 +1231,66 @@ transparent and formed-capsule states; Features still shows zero trace
 of the photo once scrolled into view; `npx tsc --noEmit`, `npm run
 lint`, and `npm run test:a11y` (all 5, including the axe contrast
 checks against the new white-on-photo text) clean.
+
+## §27 A real photo per chapter (2026-09-14)
+
+User wanted each of the five pinned chapters to have its own
+topic-related background, matching the reference video's own "media
+changes per chapter" mechanic — the one part of that mechanic §18
+deliberately hadn't built, for lack of photography. Also asked for a
+strict process: show 3-4 candidates per chapter, confirm, THEN move to
+the next chapter — never show all five topics' options at once.
+
+Went chapter by chapter, sourcing free-license (Unsplash License, no
+attribution required) photos via web search for each topic and
+sending every real candidate found (2-3 per chapter, occasionally
+more when the first round was rejected) — including ones judged a
+poor fit, always said so explicitly rather than only presenting the
+"good" ones:
+- **01 Onboarding** — rejected a competitive USA-jersey sprinter (too
+  elite/intimidating) and an off-topic fashion flatlay (a book titled
+  "This Is My London" had nothing to do with fitness); confirmed a
+  warm, cozy journal-writing close-up.
+- **02 Today** — rejected a literal photo of a dated phone home
+  screen (visually competes with our own app mockup) and an Asics
+  close-up (visible competitor logo); confirmed an empty road at
+  sunrise after the user passed on a sunset-beach-run alternative.
+- **03 Training** — confirmed a bright barbell-on-wood-floor close-up
+  over a darker, moodier dumbbell-rack alternative — the user
+  explicitly preferred the brighter, calmer option over the "more
+  consistent with the set" one.
+- **04 Progress** — rejected a single sand footprint (too literal/
+  texture-like for a full background) and noted a green forest
+  boardwalk didn't match the set's tone; confirmed the sunrise
+  mountain-trail photo from the original three-candidate Hero round.
+- **05 Every age** — the hardest chapter: went through five
+  candidates across two search rounds (outdoor gym equipment, a
+  grandfather-grandson beach walk, an older man's yoga bridge pose, an
+  older man walking a city street, a misty swimmer) before the user
+  picked the misty swimmer — flagged at the time that it reads as
+  tonally strong but age-ambiguous from behind, and the user chose it
+  anyway, which stands as their call.
+
+Each photo downloaded at 2000px, resized to 1800px and recompressed
+with `sips` to 220-330KB, saved to `public/images/chapters/`. Added a
+`bg` field per chapter in `CHAPTERS` and a new `ChapterBackground`
+component (photo + the same diagonal scrim gradient Hero uses) so five
+photos that vary a lot in natural brightness — a bright barbell
+close-up next to a misty grey swim shot — still read as one consistent
+set. The background crossfades on its own `AnimatePresence` (separate
+from the foreground copy/mockup's), which is safe to blend during the
+transition — §21's double-exposure lesson was specifically about
+dense text and UI mockups not tolerating a blend, not about
+photography, which the brief's own mechanic already assumes crossfades
+smoothly. `ChapterAtmosphere`'s old accent-colored glow blob (added in
+§23 to fill the "empty void" before real photography existed) is
+removed now that there's a real photo to fill that space; the grain
+texture and the smaller glow behind each mockup card stay, the latter
+now serving as contrast insurance across five different photo
+brightness levels rather than as the primary source of visual
+interest.
+
+Verified all five chapters individually (pinned desktop, and the
+mobile/reduced-motion stacked fallback), confirming each shows its own
+correct photo with legible text and no clipping; `npx tsc --noEmit`,
+`npm run lint`, and `npm run test:a11y` (all 5) clean.

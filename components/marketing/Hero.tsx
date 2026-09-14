@@ -33,9 +33,9 @@ export function Hero() {
   const days = PLAN_PREVIEWS[goal];
 
   // The brief's §5 "sticky hero, covered by the next section": Hero
-  // stays pinned at the top while ChapterSequence (the next section,
-  // opaque via its own dark sticky background) scrolls up over it.
-  // Progress is 0 while Hero is still fully in view and 1 once it's scrolled
+  // stays pinned at the top while Problem (the next section, given an
+  // opaque background — see Problem.tsx) scrolls up over it. Progress
+  // is 0 while Hero is still fully in view and 1 once it's scrolled
   // fully past — i.e. exactly "how covered is it right now" — driving a
   // slight scale-down and darken so it reads as receding, not just
   // getting clipped. This app's hero is light/content-first rather than

@@ -35,6 +35,12 @@ const ANCHORS = [
  * looked correct until tried). Checking `offsetParent !== null` (null
  * for a `display: none` element and everything inside one) is what
  * actually distinguishes "this branch is the one currently rendered."
+ *
+ * Only "training" and "progress" resolve to a chapter (see §23 in
+ * DESIGN.md — food/habits moved back to Features' own card grid, each
+ * a real element with a real id, so a plain browser anchor jump is
+ * enough for those two and this function is never even called for
+ * them — see the `isChapterLink` check at the call site).
  */
 function scrollToChapter(anchor: string) {
   const index = chapterIndexForAnchor(anchor);
@@ -145,6 +151,11 @@ function NavContent() {
             key={a.anchor}
             href={`#${a.anchor}`}
             onClick={(e) => {
+              // Food/Habits aren't chapters (see scrollToChapter's
+              // comment) — leave those as a plain anchor jump to their
+              // real element in Features; only override the ones that
+              // resolve to a pinned chapter.
+              if (chapterIndexForAnchor(a.anchor) < 0) return;
               e.preventDefault();
               scrollToChapter(a.anchor);
             }}

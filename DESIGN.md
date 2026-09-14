@@ -1080,3 +1080,63 @@ all four nav links landing on their correctly-named chapter; the mobile
 stacked fallback rendering all 9 chapters with working anchor ids;
 `npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
 clean.
+
+## §23 Un-merging the opening, and filling the chapters (2026-09-14)
+
+Two follow-up requests after §22 shipped. First: the user wanted the
+page's opening back to normal scrolling — Hero, then "Most plans
+ignore Tuesday" (Problem), then "What it actually does" (Features) —
+with the pinned mechanic only starting after that, not immediately
+after Hero. Second: the chapters themselves read as visually empty (a
+huge dark panel around one small card) and needed real content.
+
+**Un-merging.** Restored `Problem.tsx` and `Features.tsx` verbatim from
+before §22 (`git show` against the commit before they were deleted,
+rather than retyping them from memory — this is why their copy is
+byte-identical to the original). `ChapterSequence.tsx` drops from nine
+chapters to five: onboarding, today, training, progress, every-age.
+Food, habits, and the AI note are NOT restored as chapters on top of
+being restored as Features cards — they'd be told twice, which is the
+exact redundancy problem §22 was trying to avoid in the first place;
+they now live only in Features' card grid, same as originally.
+Hero's own sticky-cover comment reverts to naming Problem as the thing
+that covers it, since Problem is its next sibling again.
+
+Nav's four section links needed a split fix, not a revert: "Food" and
+"Habits" go back to being plain anchor jumps (Features' cards have
+real ids again), but "Training" and "Progress" now name BOTH a
+Features card and a chapter. Features' own ids for those two are
+renamed to `training-overview`/`progress-overview` so they don't
+collide with the chapter anchors, and Nav's click handler only
+overrides the click (computing a chapter scroll target) when the
+anchor actually resolves to a chapter — otherwise it lets the default
+`href="#food"`/`href="#habits"` jump proceed untouched.
+
+**Filling the chapters.** Three changes, applied to every chapter:
+- `PhoneFrame` grew from 280px to a responsive `w-full max-w-[340px]`
+  (a fixed 340px overflowed horizontally at 360px viewports — caught
+  by `npm run test:a11y`'s horizontal-scroll check, not by eye) and
+  gained a small two-dot "device chrome" bar so it reads more like a
+  real screen.
+- Each mockup gained a second real detail instead of sitting alone in
+  its card: onboarding gained a step counter and a second stat plus a
+  Continue button; today gained a habit-dot row; training gained a
+  "Week 3 · Day 2" header and a struck-through completed-set state;
+  progress gained a secondary e1RM/habit-consistency stat row.
+- Added `ChapterAtmosphere` (a soft accent-colored glow plus a faint
+  grain texture across the whole dark panel) and `ChapterGlow` (a
+  tighter glow directly behind each mockup) — a stand-in for the
+  full-bleed photography the brief's original mechanic assumes, since
+  none exists for this app. Also added short kicker labels ("Onboarding",
+  "Today", …) next to each chapter's number, both by the headline and
+  in the numbered index rail, giving the number some context instead of
+  reading as a bare digit.
+
+Verified: Problem and Features render as normal-scroll sections again
+(screenshotted mid-scroll past both); the pinned sequence still starts
+correctly right after Features and all five enriched chapters render
+without the double-exposure or empty-card issues from §20-22; the
+mobile stacked fallback at 360px shows the full-width card with no
+clipping; `npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y`
+(all 5, including the horizontal-scroll check this section's first
+pass broke and then fixed) clean.

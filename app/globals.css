@@ -61,6 +61,15 @@
 
   --color-focus: var(--color-action);
 
+  /* ---- Marketing-only dark surface — the brief's original two-theme
+     split (§3: "the marketing site is cinematic: near-black surfaces...
+     the moment a user logs in, it goes light") never got applied when
+     Hero shipped light; it's used for exactly one place now, the pinned
+     chapter sequence in ProductPreview.tsx, which is the one section on
+     the page meant to read as a cinematic interlude rather than app
+     chrome. Not used anywhere inside the authenticated app. ---- */
+  --color-surface-inverse: #16140f;
+
   /* ---- Fonts. Values are the next/font CSS vars set on <html>
      (app/layout.tsx). Inter Tight carries headlines and every large
      number the user reads (calories, weight, streak) — Public Sans

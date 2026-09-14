@@ -819,3 +819,73 @@ label at any size, and Inter Tight's tabular figures render the calorie/
 macro numbers cleanly. `npx tsc --noEmit` and `npm run lint` both clean.
 The pinned-scroll landing mechanic (brief §5) is the next item, not
 started here.
+
+## §18 The pinned chapter sequence (2026-09-14)
+
+Built the brief's §5 signature mechanic: `Nav.tsx` now detaches from a
+full-width transparent bar into a centered floating capsule as the page
+scrolls (continuous, driven by `useScroll`/`useTransform` off `window`
+scroll — not a threshold snap), and `ProductPreview.tsx` was rewritten
+entirely into a four-chapter pinned sequence with a numbered index
+(01–04), replacing its previous simple fade-in tour.
+
+**Scoped down from the brief's literal mechanic in one place:** the
+brief's §5 assumes the hero itself is the thing that gets progressively
+covered by a solid section scrolling up over it. This app's hero shipped
+as a light, content-first section (the interactive goal-picker), never
+the full-bleed dark image the covering effect needs — rebuilding Hero to
+match would undo approved, shipped work well outside "add the scroll
+mechanic." So the pinned sequence is its own dark section further down
+the page, carrying the brief's original "cinematic marketing" language
+(§3: near-black surfaces, white type) that Hero itself didn't end up
+using. Hero is untouched.
+
+**No real video exists for this app.** Each chapter's "media" is a small
+rendered mockup of the actual screen it describes (onboarding goal-pick,
+Today, an in-session set with rest timer, the weight trend) — the same
+technique `Features.tsx` already uses for its four visuals — floated in
+a light card over the dark chapter background, rather than stock footage
+or an invented video asset.
+
+**Not built:** a persistent FAQ accordion inside the sequence (the brief
+asks for one). The page already has a full FAQ section immediately after
+this one; embedding a second, smaller copy of it here would just be
+duplicate content for no real benefit, so it was left out rather than
+built to satisfy the letter of the brief. Flagging this rather than
+silently dropping it.
+
+**A real bug, found only by loading the page:** the capsule nav's outer
+`<header>` originally animated its own padding (0 → 12px) to create the
+"floating gap," which changed the header's contributed height as the
+page scrolled. `position: sticky` reserves flow space equal to the
+element's rest-state size; when a sticky element's *own* box keeps
+changing size while scrolling, the reserved space and the "stuck" render
+size drift apart and page content ends up rendering underneath/behind
+the nav instead of below it — the hero's CTA row was visibly overlapping
+the nav bar. Fixed by giving the header a constant outer box (fixed
+padding, never animated) and moving all the animated width/radius/
+opacity onto an inner div instead, which doesn't affect the header's own
+contributed height at all.
+
+**A second real bug, in the crossfade math itself:** the first
+implementation drove each chapter's opacity from four parallel
+`useTransform(scrollYProgress, ...)` calls, one per chapter. Scroll
+position updated correctly (verified with a temporary on-screen debug
+readout of `scrollYProgress`), but the rendered opacities didn't track
+it — chapter 1 stayed at its initial opacity regardless of scroll.
+Replaced with a plain derived-state approach instead: one
+`useMotionValueEvent` callback computes all four chapters' opacities
+from the current scroll fraction via a small `chapterOpacity()` function
+and stores them as normal React state, applied as plain inline
+`style={{opacity}}`. Simpler, and verified correct at the start, middle,
+and end of the sequence.
+
+Verified live at both a forced 1280×900 desktop viewport (pinned
+sequence: capsule nav forms correctly, chapters crossfade in the right
+order, numbered index tracks the active chapter, first/last chapters
+reach full opacity exactly at the sequence's start/end) and the pane's
+native ~620px width (stacked fallback: four plain panels, no pinning,
+same content and order). The stacked path is also what
+`prefers-reduced-motion` renders — not separately screenshotted, since
+it's the identical component already verified under the mobile check.
+`npm run test:a11y` (all 5) passes after the change.

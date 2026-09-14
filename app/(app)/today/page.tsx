@@ -108,9 +108,12 @@ export default async function TodayPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-ink-muted">
-        {new Date().toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", timeZone: timezone })}
-      </p>
+      <div>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Today</h1>
+        <p className="mt-1 text-sm text-ink-muted">
+          {new Date().toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", timeZone: timezone })}
+        </p>
+      </div>
 
       {profile?.hide_energy ? (
         <MacroOnlyHero

@@ -15,7 +15,7 @@ export default async function FormResultPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">Form check results</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Form check results</h1>
       <FormSummary analysis={analysis} />
     </div>
   );

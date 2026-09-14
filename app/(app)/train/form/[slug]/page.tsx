@@ -16,7 +16,7 @@ export default async function FormExercisePage({ params }: { params: Promise<{ s
     // the worker/capture UI yet. Say so rather than showing a broken screen.
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold text-ink-primary">{exercise.name}</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">{exercise.name}</h1>
         <p className="text-sm text-ink-muted">This exercise&apos;s form check isn&apos;t wired up to the camera yet — the rules exist, the capture flow doesn&apos;t reach them.</p>
       </div>
     );
@@ -24,7 +24,7 @@ export default async function FormExercisePage({ params }: { params: Promise<{ s
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">{exercise.name}</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">{exercise.name}</h1>
       <DynamicCaptureClient exerciseId={exercise.id} exerciseSlug={exercise.slug} exerciseName={exercise.name} cameraView="side" />
     </div>
   );

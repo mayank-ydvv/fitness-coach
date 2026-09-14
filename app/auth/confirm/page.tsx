@@ -14,7 +14,7 @@ export default async function ConfirmPage({
   return (
     <AuthShell>
       <div className="text-center">
-        <h1 className="mb-1 text-2xl font-semibold text-ink-primary">AI Fitness Coach</h1>
+        <h1 className="mb-1 text-3xl font-normal tracking-[-0.02em] text-ink-primary">AI Fitness Coach</h1>
         {tokenHash && type ? (
           <>
             <p className="mb-6 text-ink-muted">Confirm it was you before we sign you in.</p>

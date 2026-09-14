@@ -7,7 +7,7 @@ export default async function LibraryPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">Exercise library</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Exercise library</h1>
       <ExerciseLibrary exercises={exercises ?? []} />
     </div>
   );

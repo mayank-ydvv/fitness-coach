@@ -72,7 +72,7 @@ export function EatPageClient({
   return (
     <div className="flex flex-col gap-5 pb-20">
       <div>
-        <h1 className="text-2xl font-semibold text-ink-primary">Eat</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Eat</h1>
         <div className="mt-2 flex items-baseline gap-2">
           <Metric value={measure.energy(rollup.kcal)} size="xl" />
           <span className="text-sm text-ink-muted">logged today</span>

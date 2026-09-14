@@ -25,7 +25,7 @@ export default async function TrainPage() {
   if (!program) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold text-ink-primary">Train</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Train</h1>
         <Card>
           <EmptyState
             icon={<Dumbbell size={28} />}
@@ -66,7 +66,7 @@ export default async function TrainPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">Train</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Train</h1>
 
       <Card>
         <p className="text-sm font-medium text-ink-primary">{program.name}</p>

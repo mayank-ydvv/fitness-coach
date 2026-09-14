@@ -10,7 +10,7 @@ export default async function LoginPage({
 
   return (
     <AuthShell>
-      <h1 className="mb-1 text-2xl font-semibold text-ink-primary">AI Fitness Coach</h1>
+      <h1 className="mb-1 text-3xl font-normal tracking-[-0.02em] text-ink-primary">AI Fitness Coach</h1>
       <p className="mb-6 text-ink-muted">Sign in to see today&apos;s workout and log your meals.</p>
       <LoginForm next={next} />
     </AuthShell>

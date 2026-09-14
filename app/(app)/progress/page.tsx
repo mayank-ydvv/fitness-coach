@@ -184,7 +184,7 @@ export default async function ProgressPage() {
   if (!hasAnyData) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold text-ink-primary">Progress</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Progress</h1>
         <Card>
           <EmptyState icon={<LineChartIcon size={28} />} line="Charts show up once you've logged a few sessions and meals." />
         </Card>
@@ -204,7 +204,7 @@ export default async function ProgressPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">Progress</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Progress</h1>
 
       {isSparse ? (
         <Card>

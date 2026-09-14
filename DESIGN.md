@@ -1294,3 +1294,35 @@ Verified all five chapters individually (pinned desktop, and the
 mobile/reduced-motion stacked fallback), confirming each shows its own
 correct photo with legible text and no clipping; `npx tsc --noEmit`,
 `npm run lint`, and `npm run test:a11y` (all 5) clean.
+
+## §28 Inner app page titles brought to the landing page's type voice (2026-09-15)
+
+User request: make the authenticated app's UI look like the landing
+page's. Investigated by logging in as a guest and screenshotting every
+inner tab (Today, Train, Eat, Habits, Progress, Settings) next to the
+landing page. The design tokens (Card, Button, palette, radius,
+shadows) were already fully shared — the landing's Hero literally
+renders the app's own `Card`/`Chip` components — so there was no
+token-level drift to fix. The one real, consistent gap: every inner
+page's `<h1>` used a generic dashboard treatment,
+`text-2xl font-semibold text-ink-primary`, while the landing page's
+own section headings (Hero's `h1`, Features' `h2`) use a distinct
+brand voice — larger, regular weight, tight tracking
+(`text-3xl font-normal tracking-[-0.02em]`, i.e. "whisper-weight" per
+§Visual tokens v2). The dashboard treatment never once appeared on the
+landing page; it was a leftover from before that type voice existed.
+
+Replaced the exact class string everywhere it appeared (Settings,
+Progress, Train + its /library, /program/new, /form and /form/[slug]
+subpages, Eat, Habits, the session summary screen, and the
+pre-auth login/confirm screens) with the landing's own heading class,
+rather than inventing a new one — same brand, same rule, no new
+token. Today was the one tab missing a page title altogether (just a
+small date line); added a matching `Today` heading above the date so
+all six tabs are consistent with each other and with the landing page.
+
+Verified every affected tab (Train, Eat, Habits, Progress, Settings,
+Today) in the browser as a real guest session, including at 360px
+(the spec's floor) on the longest title, "Exercise library" — no
+wrapping or horizontal scroll. `npx tsc --noEmit` and `npm run lint`
+clean.

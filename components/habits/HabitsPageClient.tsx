@@ -77,7 +77,7 @@ export function HabitsPageClient({ userId, todayDate }: { userId: string; todayD
   if (habits.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold text-ink-primary">Habits</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Habits</h1>
         <Card>
           <EmptyState icon={<CalendarCheck size={28} />} line="No habits yet. Add one — training, logging meals, sleep — and track it daily." />
         </Card>
@@ -96,7 +96,7 @@ export function HabitsPageClient({ userId, todayDate }: { userId: string; todayD
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-ink-primary">Habits</h1>
+        <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Habits</h1>
         <button type="button" onClick={openCreate} aria-label="Add habit" className="flex size-11 items-center justify-center rounded-control text-ink-muted hover:text-ink-primary">
           <Plus size={20} aria-hidden />
         </button>

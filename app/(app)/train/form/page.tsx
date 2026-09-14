@@ -7,7 +7,7 @@ export default async function FormPickerPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-ink-primary">Check your form</h1>
+      <h1 className="text-3xl font-normal tracking-[-0.02em] text-ink-primary">Check your form</h1>
       <p className="text-sm text-ink-muted">
         On-device pose tracking — your camera video never leaves your device. Pick an exercise below.
       </p>

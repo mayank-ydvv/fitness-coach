@@ -1176,3 +1176,58 @@ at two very different viewport heights (1250px and 800px) rather than
 eyeballing a screenshot, confirming it stays below the fold at both.
 `npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
 clean.
+
+## §26 Hero gets a real background photo (2026-09-14)
+
+User wanted a fitness/athlete photo behind Hero, per the brief's
+original §3 "cinematic marketing" direction that this app's hero never
+actually used. Explicitly asked to be shown candidates before anything
+was picked — sourced three free-license (Unsplash License, no
+attribution required) photos via web search, sent all three to the
+user with an honest note that one of them (a very muscular pull-up
+shot) skews toward the "intimidating gym-bro" look the brief itself
+says to avoid, and let them choose. They picked the sunset beach
+runner — calm, silhouette, works for a 17-year-old or a 68-year-old
+alike, closest in spirit to the Superpower reference's own warm
+backlit hero.
+
+Downloaded at 2400px, resized to 1200×1800 and recompressed with
+`sips` (macOS built-in, no image tool was installed) to ~170KB —
+`public/images/hero-bg.jpg`. Hero's sticky div now renders the photo
+full-bleed via a plain CSS `background-image` (not `next/image`, since
+this is a fixed decorative background, not a content image with its
+own intrinsic sizing needs) with a diagonal dark gradient scrim over
+it — a gradient rather than a flat tint, so the "your first week"
+card (which sits over the lighter middle-right of the photo) still
+gets real contrast without darkening the whole image uniformly, and
+the deliberate recede-darken overlay (§19) still layers on top as
+Hero is covered while scrolling. Headline, subcopy, and the guest-mode
+link all move from dark ink to `text-ink-on-brand` (white) to read
+against the photo; `Button`'s existing variants and `Chip`'s existing
+unselected style are already opaque light pills, so they needed no
+change to stay legible.
+
+**A real bug, found by loading the page, not by reading the diff:**
+`Nav` used to be `position: sticky`, which reserves its own height in
+normal document flow — meaning Hero's photo could only start *after*
+that reserved strip, so the nav sat on the plain page background for
+its first ~90px of height, not on the photo, and the now-white nav
+text was unreadable there until scrolled. Changed `Nav` to `position:
+fixed` instead (its own box height is already constant, not animated,
+so this doesn't reopen the earlier sticky-reflow bug the capsule
+already fixed) — this removes it from flow entirely, so Hero's photo
+now starts at the true top of the page and is visible behind the nav
+immediately. Nav's text color itself is now also conditional
+(`light` prop, derived the same `useMotionValueEvent`-into-state way
+as everything else that reads scroll progress in this codebase) —
+white while the nav is still the transparent bar over the photo,
+dark once the opaque capsule has formed. Hero's own top padding grew
+from `pt-10`/`pt-16` to `pt-28`/`pt-32` to clear the now-floating,
+no-longer-flow-reserving nav.
+
+Verified: the photo now visibly extends behind the nav from `scrollY:
+0` (no cream gap above it); nav text is legible at both the
+transparent and formed-capsule states; Features still shows zero trace
+of the photo once scrolled into view; `npx tsc --noEmit`, `npm run
+lint`, and `npm run test:a11y` (all 5, including the axe contrast
+checks against the new white-on-photo text) clean.

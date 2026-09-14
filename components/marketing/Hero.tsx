@@ -67,7 +67,29 @@ export function Hero() {
   // means it holds regardless of window height.
   return (
     <div ref={measureRef} id="top">
-      <div className="sticky top-0 z-0 mx-auto min-h-screen max-w-5xl px-5 pb-20 pt-10 lg:pt-16">
+      <div className="sticky top-0 z-0 min-h-screen">
+        {/* Full-bleed photo + scrim, per the brief's §3 "cinematic
+            marketing" direction — a real runner, not stock-gym-bro
+            imagery (picked after showing the user three licensed
+            Unsplash candidates and asking; see DESIGN.md §26). The
+            scrim is a gradient, not a flat tint, so the card on the
+            right — which sits over the lighter middle of the photo —
+            still gets enough contrast without darkening the whole
+            image uniformly. */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-[center_30%]"
+          style={{ backgroundImage: "url(/images/hero-bg.jpg)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[linear-gradient(115deg,rgba(22,20,15,0.82)_0%,rgba(22,20,15,0.6)_42%,rgba(22,20,15,0.38)_100%)]"
+        />
+      {/* pt-28/32 (not the old pt-10/16) — Nav is now `position: fixed`
+          (see Nav.tsx) rather than reserving its own flow space, so
+          content here has to clear the floating nav itself instead of
+          starting right where flow-reserved space used to end. */}
+      <div className="relative mx-auto max-w-5xl px-5 pb-20 pt-28 lg:pt-32">
       <div style={reduceMotion ? undefined : { transform: `scale(${recede.scale})` }}>
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
@@ -76,7 +98,7 @@ export function Hero() {
           className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-16"
         >
         <div>
-          <h1 className="max-w-md text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-ink-primary lg:text-5xl">
+          <h1 className="max-w-md text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-ink-on-brand lg:text-5xl">
             Pick where you&apos;re starting.
           </h1>
 
@@ -95,7 +117,7 @@ export function Hero() {
             ))}
           </div>
 
-          <p className="mt-6 max-w-md text-ink-muted">
+          <p className="mt-6 max-w-md text-ink-on-brand/75">
             A training and food log that pays attention to what you actually did — not a plan built once
             and left to go stale.
           </p>
@@ -111,7 +133,9 @@ export function Hero() {
                 </Button>
               </Link>
             </div>
-            <GuestButton className="text-sm">Or continue as a guest — nothing you do will be saved</GuestButton>
+            <GuestButton className="text-sm text-ink-on-brand/80">
+              Or continue as a guest — nothing you do will be saved
+            </GuestButton>
           </div>
         </div>
 
@@ -147,8 +171,9 @@ export function Hero() {
         </motion.div>
       </div>
       {!reduceMotion && (
-        <div aria-hidden style={{ opacity: recede.darken }} className="pointer-events-none absolute inset-0 bg-ink-primary" />
+        <div aria-hidden style={{ opacity: recede.darken }} className="pointer-events-none absolute inset-0 bg-black" />
       )}
+      </div>
       </div>
     </div>
   );

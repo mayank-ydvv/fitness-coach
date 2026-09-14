@@ -62,20 +62,28 @@ export function ProductPreview() {
   );
 }
 
-/** Per-chapter crossfade curve: [plateauStart, plateauEnd] fully
- * visible, with a fade of `fade` width on each side (skipped at the
- * absolute start/end of the whole sequence, where there's nothing to
- * fade from/to). */
-function chapterOpacity(v: number, index: number, total: number, fade = 0.075) {
+/**
+ * Per-chapter crossfade curve. Each chapter occupies [left, right]; the
+ * fade in/out ramps are centered ON the shared boundary with its
+ * neighbor (a `2*fade`-wide window straddling `left`/`right` equally),
+ * not offset to one side of it — a real bug shipped briefly where the
+ * fade-out ramp sat entirely AFTER the boundary and the fade-in ramp
+ * sat entirely BEFORE it, so neither ramp actually overlapped the
+ * other: each chapter reached its own full opacity independently right
+ * at the boundary, and both chapters were fully visible at once for a
+ * stretch (a visible "double exposure", reported by the user against
+ * the live site). Centering both ramps on the same window makes them
+ * complementary — at any point inside it, the two chapters' opacities
+ * sum to 1, so there's never a moment where both read as fully opaque.
+ */
+function chapterOpacity(v: number, index: number, total: number, fade = 0.05) {
   const step = 1 / total;
-  const start = index * step;
-  const end = start + step;
-  const fadeInStart = index === 0 ? start : start - fade;
-  const fadeOutEnd = index === total - 1 ? end : end + fade;
-  if (v <= fadeInStart || v >= fadeOutEnd) return 0;
-  if (v < start) return (v - fadeInStart) / (start - fadeInStart);
-  if (v > end) return 1 - (v - end) / (fadeOutEnd - end);
-  return 1;
+  const left = index * step;
+  const right = left + step;
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+  const rampIn = index === 0 ? 1 : clamp01((v - (left - fade)) / (2 * fade));
+  const rampOut = index === total - 1 ? 1 : clamp01((right + fade - v) / (2 * fade));
+  return Math.min(rampIn, rampOut);
 }
 
 function PinnedChapters() {

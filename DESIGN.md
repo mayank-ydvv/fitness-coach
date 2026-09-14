@@ -939,3 +939,37 @@ scroll positions (0, mid-recede, fully covered) confirming the recede
 transform ramps from `scale(1)`/`opacity 0` to `scale(0.96)`/
 `opacity 0.4` and clamps there — plus `npx tsc --noEmit`, `npm run lint`,
 and `npm run test:a11y` (all 5) clean after the change.
+
+## §20 Chapter crossfade double-exposure (2026-09-14)
+
+User-reported bug against the live site, screenshotted from real Safari:
+at certain scroll positions in the §18 pinned chapter sequence, two
+chapters' headline/body text and mockups were both fully legible,
+overlapping and unreadable — not a subtle blend, a genuine "double
+exposure."
+
+Root cause, found in `chapterOpacity()`: each chapter's fade-out window
+sat entirely *after* its own end boundary, and the next chapter's
+fade-in window sat entirely *before* that same boundary — two adjacent,
+non-overlapping windows either side of the boundary, rather than one
+shared window. That meant chapter N's plateau (opacity 1) extended all
+the way to the boundary, and chapter N+1's fade-in *also* reached
+opacity 1 by that same boundary — both hit full opacity independently,
+right where they met, instead of trading off. From the boundary onward
+chapter N was fading out `[end, end+fade]` while chapter N+1 sat at a
+full, un-fading 1 — an extended stretch where both were highly visible
+at once, exactly matching the screenshot.
+
+Rewrote it around a single shared transition window centered on each
+boundary (`[boundary-fade, boundary+fade]`), with the two neighbors'
+ramps mathematically complementary across it — at any point inside, the
+two opacities sum to exactly 1, so neither is ever independently at
+"full" while the other is still substantial. Also narrowed `fade` from
+0.075 to 0.05 (of a 0.25 chapter width), shortening how long any overlap
+lasts at all.
+
+Verified by sampling opacities across a boundary (e.g. at the 01→02
+transition: 1.00/0.00 → 0.06/0.94 → 0.00/1.00, strictly monotonic and
+summing to 1, never both high) and visually in the browser — one legible
+chapter at a time, no overlap. `npx tsc --noEmit`, `npm run lint`, and
+`npm run test:a11y` (all 5) clean.

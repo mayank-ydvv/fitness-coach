@@ -28,7 +28,7 @@ export function BuiltForEveryAge() {
 
   return (
     <section ref={ref} className="mx-auto max-w-3xl px-5 py-16">
-      <h2 className="text-3xl font-semibold text-ink-primary">Built for every age.</h2>
+      <h2 className="text-3xl font-normal text-ink-primary">Built for every age.</h2>
       <p className="mt-3 max-w-xl text-ink-muted">
         Whether this is your first week of exercise or your twentieth year training, the plan starts
         from your numbers, not an average.

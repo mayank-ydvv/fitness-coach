@@ -8,7 +8,7 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">
-      <h2 className="mb-8 text-3xl font-semibold text-ink-primary">How it works</h2>
+      <h2 className="mb-8 text-3xl font-normal text-ink-primary">How it works</h2>
       <ol className="flex flex-col gap-8">
         {STEPS.map((s, i) => (
           <li key={s.title} className="flex gap-5">

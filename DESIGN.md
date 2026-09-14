@@ -740,3 +740,82 @@ Re-ran typecheck, lint, `npm run test:a11y` (all 5), and `npm run check`
 
 All eight phases complete. Remaining known gaps are listed in §15 and
 §16's self-critique — not hidden, not claimed as done.
+
+## §17 Visual tokens v2 — the Superpower structural reference (2026-09-14)
+
+After Phase 8 shipped, the user supplied the actual style-extraction file
+for the reference named in the original brief's §3b ("Superpower",
+superpower.com) plus a screen recording of the live site. The Phase 1–8
+work had been built from the brief's *prose description* of that
+reference, not the real extracted tokens, and diverged from it in three
+structural ways the brief explicitly calls out as things to take
+verbatim: type weight, shadow depth, and corner geometry. This section is
+a token-only revision — no new components, no layout changes, no content
+changes — reconciling those three things. The scroll mechanic in the
+brief's §5 (pinned hero, detaching capsule nav, numbered chapter
+sequence) is explicitly deferred to a separate pass; nothing here builds
+it.
+
+**1. Display type — weight 400, tight tracking, sans not serif.**
+Fraunces (serif, 500/600) is removed entirely. `--font-display` and
+`--font-metric` now both point at Inter Tight (400/500) — the brief's own
+named licensed substitute for the reference's proprietary NB
+International Pro. Six marketing section headings (`Hero`, `ClosingCta`,
+`Features`, `Problem`, `BuiltForEveryAge`, `HowItWorks`, `Faq`,
+`ProductPreview`) went from `font-semibold` to `font-normal`: weight 400
+at display size is, per the brief, "the single most distinctive thing in
+the reference." `Nav.tsx`'s wordmark deliberately stays bold — the brief
+allows the brand mark as one of only two places (alongside the accent
+color) where the rationing rule doesn't apply.
+
+Body copy is untouched at 17px/1.6 — the brief's own instruction was to
+keep the reference's type *treatment* (the tracking mechanic) while
+raising its type *size* (the reference ships 15px body, ours stays at
+17px). Tracking now follows the reference's table exactly: `-0.025em` at
+`--text-metric` (display) down to `-0.005em` at `--text-base` (body),
+tightening in one step per scale rung rather than the flat `-0.01em`
+Phase 2 used everywhere above body size.
+
+**2. Shadows — flat, not layered.** `--shadow-raised` was a three-layer
+stack (contact shadow + wide ambient + inset top highlight) — Phase 2's
+own signature "instrument" depth treatment. The reference's brief section
+is explicit that this is superseded, not supplemented: "This overrides
+the layered-shadow guidance in section 3 — go flat, it suits this system
+better." `--shadow-raised` is now the reference's exact value,
+`0 2px 2px rgba(0,0,0,0.05)`. `--shadow-floating` keeps a little more
+weight than raised (two soft layers, no inset highlight) — not because
+cards get elevation back, but because a few surfaces (Sheet, Toast, the
+rest-timer full-screen takeover) still need to read as genuinely above
+the page rather than sitting flush on it. `Card.tsx` itself needed no
+edit — it already read the `shadow-raised` token rather than a hardcoded
+value, so the flattening propagated through every card, sheet, and panel
+in the app without a per-component change.
+
+**3. Radius — pill buttons, tighter card/chip scale.** Added a new
+`--radius-pill: 9999px` token used directly by `Button.tsx` (not through
+`--radius-control`) — buttons/CTAs are always a true pill regardless of
+what radius inputs or `SegmentedControl` items use, matching the
+reference's own split (`buttons: 9999px` vs `cards: 15px` vs
+`smallCards: 5px` in the extracted tokens). `--radius-card` moved
+20px → 16px (close to the reference's 15px), `--radius-chip` moved
+8px → 6px (close to its 5px), `--radius-control` moved 12px → 10px
+(inputs/segmented items stay rectangular-ish, not pills — the reference
+doesn't specify an input radius, and a pill-shaped text field would read
+wrong), `--radius-sheet` moved 28px → 22px to keep the same proportional
+gap above the new card value.
+
+**Left unchanged, deliberately:** the Harbor accent (`--color-action`)
+and the full Canvas/Paper/Stone palette — the reference's rule that "one
+accent color, used only on filled primary buttons and the brand mark"
+was already true of Harbor before this pass, so there was nothing to
+reconcile there. The `--color-load-*` intensity scale, all motion tokens,
+and every piece of copy are untouched.
+
+Verified live in the browser (dev server) on the landing page (Hero
+headline, section headings, primary/secondary CTAs) and `/demo` (Today's
+card stack, macro bars, pill CTA) after the change — flat cards read
+correctly against Canvas, the pill button doesn't collide with its own
+label at any size, and Inter Tight's tabular figures render the calorie/
+macro numbers cleanly. `npx tsc --noEmit` and `npm run lint` both clean.
+The pinned-scroll landing mechanic (brief §5) is the next item, not
+started here.

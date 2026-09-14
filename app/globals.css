@@ -62,57 +62,79 @@
   --color-focus: var(--color-action);
 
   /* ---- Fonts. Values are the next/font CSS vars set on <html>
-     (app/layout.tsx). Fraunces (serif, variable) carries headlines and
-     every large number the user reads (calories, weight, streak) —
-     Public Sans carries everything else. See DESIGN.md §2. ---- */
+     (app/layout.tsx). Inter Tight carries headlines and every large
+     number the user reads (calories, weight, streak) — Public Sans
+     carries everything else. See DESIGN.md §Visual tokens v2: this
+     replaces the earlier Fraunces-serif pass. The reference's whisper-
+     weight display treatment is a sans-serif technique (tight negative
+     tracking at regular weight), not a serif one — Inter Tight is the
+     brief's own licensed substitute for the reference's proprietary NB
+     International Pro. ---- */
   --font-ui: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), var(--font-public-sans), serif;
-  --font-metric: var(--font-fraunces), var(--font-public-sans), serif;
+  --font-display: var(--font-inter-tight), var(--font-public-sans), ui-sans-serif, sans-serif;
+  --font-metric: var(--font-inter-tight), var(--font-public-sans), ui-sans-serif, sans-serif;
 
   /* ---- Type scale — see DESIGN.md §2 for the full table with roles.
-     Body floor is 17px sitewide; nothing anywhere goes below 14px. ---- */
+     Body floor is 17px sitewide; nothing anywhere goes below 14px.
+     Tracking now follows the reference's rule directly: tight at
+     display, loosening a step at a time down to body (-0.025em ->
+     -0.005em) — see DESIGN.md §Visual tokens v2. ---- */
   --text-xs: 0.875rem; /* 14px — meta/timestamps only, never reading content */
   --text-xs--line-height: 1.4;
   --text-sm: 0.9375rem; /* 15px — labels, chip text */
   --text-sm--line-height: 1.4;
+  --text-sm--tracking: -0.005em;
   --text-base: 1.0625rem; /* 17px — body */
   --text-base--line-height: 1.6;
+  --text-base--tracking: -0.005em;
   --text-lg: 1.125rem; /* 18px — body-lg */
-  --text-lg--line-height: 1.6;
+  --text-lg--line-height: 1.5;
+  --text-lg--tracking: -0.006em;
   --text-xl: 1.25rem; /* heading-md */
   --text-xl--line-height: 1.3;
+  --text-xl--tracking: -0.009em;
   --text-2xl: 1.5rem; /* heading-lg */
   --text-2xl--line-height: 1.25;
+  --text-2xl--tracking: -0.012em;
   --text-3xl: 2.25rem; /* display-section */
-  --text-3xl--line-height: 1.1;
-  --text-3xl--tracking: -0.01em;
+  --text-3xl--line-height: 1.15;
+  --text-3xl--tracking: -0.015em;
   --text-4xl: 2.5rem; /* metric-lg */
-  --text-4xl--line-height: 1;
-  --text-4xl--tracking: -0.01em;
+  --text-4xl--line-height: 1.05;
+  --text-4xl--tracking: -0.02em;
 
   /* Hero display + hero metric: 44px at 360px wide -> 72px on desktop. */
   --text-metric: clamp(2.75rem, 6vw, 4.5rem);
-  --text-metric--line-height: 1.05;
-  --text-metric--tracking: -0.01em;
+  --text-metric--line-height: 1;
+  --text-metric--tracking: -0.025em;
 
   /* ---- Radius — encodes hierarchy, not decoration: chips/tags smallest,
-     containers largest. Never one radius on everything. ---- */
-  --radius-chip: 8px; /* portion chips, tags, small pills */
-  --radius-control: 12px; /* inputs, buttons, segmented-control items */
-  --radius-card: 20px; /* cards, panels */
-  --radius-sheet: 28px; /* bottom sheets, modals — the largest container */
+     containers largest. Never one radius on everything. Values now
+     follow the reference's pill-geometry system (DESIGN.md §Visual
+     tokens v2): buttons/CTAs are a dedicated full pill (see
+     --radius-pill, used directly by Button.tsx rather than through
+     radius-control, since not every control that used radius-control —
+     text inputs, segmented-control items — should become a pill), cards
+     sit close to the reference's 15px, chips close to its 5px. ---- */
+  --radius-chip: 6px; /* portion chips, tags, small pills */
+  --radius-control: 10px; /* inputs, segmented-control items */
+  --radius-card: 16px; /* cards, panels */
+  --radius-sheet: 22px; /* bottom sheets, modals — the largest container */
+  --radius-pill: 9999px; /* buttons, CTAs — always a true pill */
 
-  /* ---- Shadows — two elevation tiers, each a real multi-layer stack
-     (tight contact shadow + wide soft ambient + a hairline top highlight
-     that reads as caught light on a raised Paper surface). "raised" is
-     the standard card/panel tier; "floating" is deliberately heavier —
-     for anything that floats ABOVE the page rather than sitting on it
-     (the rest-timer takeover, a sheet, a toast). Tailwind v4 turns these
-     into shadow-raised / shadow-floating utilities directly. ---- */
-  --shadow-raised: 0 1px 2px rgba(33, 29, 26, 0.05), 0 6px 20px -8px rgba(33, 29, 26, 0.1),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.7);
-  --shadow-floating: 0 2px 6px rgba(33, 29, 26, 0.08), 0 24px 48px -16px rgba(33, 29, 26, 0.22),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  /* ---- Shadows — flat system per the reference (DESIGN.md §Visual
+     tokens v2): most surfaces carry a single faint contact shadow or
+     none at all, separation comes from the Stone/hairline borders and
+     whitespace, not elevation. This replaces the earlier multi-layer
+     "raised/floating" stack entirely — that layered-depth treatment was
+     the previous "instrument" pass's signature and is deliberately
+     dropped in favor of the reference's flat system. "floating" stays
+     slightly stronger than "raised" only because a few surfaces (a
+     sheet, a toast, the rest-timer takeover) still need to read as
+     genuinely above the page rather than sitting on it — not because
+     cards get heavy elevation back. ---- */
+  --shadow-raised: 0 2px 2px rgba(33, 29, 26, 0.05);
+  --shadow-floating: 0 8px 24px -8px rgba(33, 29, 26, 0.16), 0 2px 6px rgba(33, 29, 26, 0.08);
 
   /* ---- Motion. Mirrored in lib/motion/tokens.ts for Motion/JS call
      sites (Motion reads plain numbers/arrays, not CSS custom

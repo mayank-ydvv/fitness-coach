@@ -20,7 +20,7 @@ export function ProductPreview() {
 
   return (
     <section ref={ref} className="mx-auto max-w-5xl px-5 py-16">
-      <h2 className="mb-8 text-3xl font-semibold text-ink-primary">A look inside</h2>
+      <h2 className="mb-8 text-3xl font-normal text-ink-primary">A look inside</h2>
       <div className="grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-center">
         <div className="relative rounded-card border border-hairline bg-surface-raised p-5 shadow-raised">
           <div className="flex items-center justify-between">

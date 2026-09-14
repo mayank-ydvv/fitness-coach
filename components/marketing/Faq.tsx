@@ -31,7 +31,7 @@ const FAQS: { id?: string; q: string; a: string }[] = [
 export function Faq() {
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">
-      <h2 className="mb-8 text-3xl font-semibold text-ink-primary">Questions</h2>
+      <h2 className="mb-8 text-3xl font-normal text-ink-primary">Questions</h2>
       <div className="flex flex-col divide-y divide-hairline border-y border-hairline">
         {FAQS.map((f) => (
           <details key={f.q} id={f.id} className="group py-5">

@@ -41,7 +41,7 @@ export function Hero() {
         className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-16"
       >
         <div>
-          <h1 className="max-w-md text-4xl font-semibold leading-[1.1] text-ink-primary lg:text-5xl">
+          <h1 className="max-w-md text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-ink-primary lg:text-5xl">
             Pick where you&apos;re starting.
           </h1>
 

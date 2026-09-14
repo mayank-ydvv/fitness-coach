@@ -1,7 +1,7 @@
 export function Problem() {
   return (
     <section className="mx-auto max-w-3xl px-5 py-16">
-      <h2 className="text-3xl font-semibold text-ink-primary">Most plans ignore Tuesday.</h2>
+      <h2 className="text-3xl font-normal text-ink-primary">Most plans ignore Tuesday.</h2>
       <div className="mt-6 flex flex-col gap-4 text-lg text-ink-muted">
         <p>
           A program built once, for someone else&apos;s week, doesn&apos;t know you skipped leg day or

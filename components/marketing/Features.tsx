@@ -134,7 +134,7 @@ const FEATURES = [
 export function Features() {
   return (
     <section className="mx-auto max-w-5xl px-5 py-16">
-      <h2 className="mb-8 text-3xl font-semibold text-ink-primary">What it actually does</h2>
+      <h2 className="mb-8 text-3xl font-normal text-ink-primary">What it actually does</h2>
       <div className="grid gap-5 md:grid-cols-2">
         {FEATURES.map((f) => (
           <Card key={f.id} id={f.id} className={cn("min-w-0", f.large && "md:col-span-2")}>

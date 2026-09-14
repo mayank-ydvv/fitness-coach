@@ -46,7 +46,10 @@ export function Button({
       aria-busy={loading || undefined}
       disabled={disabled || loading}
       className={cn(
-        "relative isolate inline-flex items-center justify-center gap-2 overflow-hidden rounded-control font-medium",
+        // Full pill, not rounded-control — the reference's buttons/CTAs
+        // are always 9999px regardless of what radius inputs/segmented
+        // controls use. See DESIGN.md §Visual tokens v2.
+        "relative isolate inline-flex items-center justify-center gap-2 overflow-hidden rounded-full font-medium",
         "transition-[filter,border-color,background-color] duration-[var(--duration-feedback)]",
         "active:scale-[0.98]",
         "disabled:opacity-50 disabled:pointer-events-none",

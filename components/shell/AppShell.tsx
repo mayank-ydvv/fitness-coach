@@ -4,8 +4,9 @@ import type { ReactNode } from "react";
 import { SkipLink } from "@/components/a11y/SkipLink";
 import { BottomNav } from "./BottomNav";
 import { LeftRail } from "./LeftRail";
+import { GuestBanner } from "./GuestBanner";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, isGuest = false }: { children: ReactNode; isGuest?: boolean }) {
   return (
     <div className="min-h-dvh bg-surface-base">
       <SkipLink />
@@ -21,6 +22,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         </header>
         <main id="main-content" className="mx-auto max-w-2xl px-5 pb-24 pt-2 lg:max-w-4xl lg:pb-10">
+          {isGuest ? <GuestBanner /> : null}
           {children}
         </main>
       </div>

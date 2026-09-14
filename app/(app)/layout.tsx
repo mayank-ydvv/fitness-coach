@@ -24,7 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       initialUnitSystem={profile.unit_system}
       initialHideEnergy={profile.hide_energy}
     >
-      <AppShell>{children}</AppShell>
+      <AppShell isGuest={user.is_anonymous}>{children}</AppShell>
     </PreferencesProvider>
   );
 }

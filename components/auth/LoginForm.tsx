@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
+import { GuestButton } from "@/components/auth/GuestButton";
 
 export function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
@@ -82,6 +83,9 @@ export function LoginForm({ next }: { next?: string }) {
       <Button type="button" variant="secondary" onClick={signInWithGoogle} className="w-full">
         Continue with Google
       </Button>
+      <div className="mt-1 flex justify-center">
+        <GuestButton next={next ?? "/onboarding"}>Continue as a guest — nothing will be saved</GuestButton>
+      </div>
     </div>
   );
 }

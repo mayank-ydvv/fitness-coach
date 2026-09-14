@@ -70,6 +70,32 @@ Google OAuth needs a client ID/secret configured in the Supabase dashboard
 that's a manual step outside what any tool here can do. Magic-link sign-in
 works with no extra setup.
 
+## Guest mode: an exception to "no anonymous sign-in"
+
+The original plan's auth section says "real sessions (no anonymous sign-in,
+unlike findr)". That was overridden later: the user explicitly asked for a
+"continue as guest" option, so **Anonymous Sign-Ins are enabled** in the
+Supabase dashboard (Authentication → Providers) and `GuestButton.tsx`
+(`components/auth/GuestButton.tsx`) calls `supabase.auth.signInAnonymously()`
+from the hero and the login page.
+
+This is a real Supabase user (`is_anonymous: true` on the JWT), not a
+client-only mock — a guest gets the actual app, writing real rows under
+their own RLS-scoped `auth.uid()`, same as everyone else. No RLS policy
+changes were needed because anonymous users already use the `authenticated`
+role.
+
+"Nothing is saved" is enforced on sign-out, not by withholding writes:
+`app/auth/signout/route.ts` calls the existing `delete_account()` RPC when
+`user.is_anonymous` is true, which deletes the `auth.users` row and
+cascades everything the guest created. `GuestBanner.tsx`
+(`components/shell/GuestBanner.tsx`, shown via `AppShell`'s `isGuest` prop)
+keeps this visible while using the app. Its "Sign up to keep it" action
+signs out first (cleaning up the guest row) rather than linking straight to
+`/login`, because starting a magic-link/Google flow on top of a live
+anonymous session would silently orphan that anonymous user instead of
+cleaning it up.
+
 ## Conventions (see the plan for the reasoning behind each)
 
 - Three Supabase clients: `lib/supabase/{client,server,admin}.ts`. Admin

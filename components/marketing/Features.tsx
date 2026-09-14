@@ -139,22 +139,30 @@ const FEATURES = [
   },
 ];
 
+/**
+ * Immediately follows the sticky Hero now that Problem is gone (see
+ * Hero.tsx) — an opaque, full-width background plus `relative z-10` is
+ * what makes it visually scroll up and cover Hero rather than the two
+ * overlapping with no clear front/back order.
+ */
 export function Features() {
   return (
-    <section className="mx-auto max-w-5xl px-5 py-16">
-      <h2 className="mb-8 text-3xl font-normal text-ink-primary">What it actually does</h2>
-      <div className="grid gap-5 md:grid-cols-2">
-        {FEATURES.map((f) => (
-          <Card key={f.id} id={f.id} className={cn("min-w-0", f.large && "md:col-span-2")}>
-            <div className={f.large ? "grid gap-6 md:grid-cols-2 md:items-center" : undefined}>
-              <div>
-                <h3 className="text-xl font-medium text-ink-primary">{f.title}</h3>
-                <p className="mt-2 text-ink-muted">{f.body}</p>
+    <section className="relative z-10 bg-surface-base py-16">
+      <div className="mx-auto max-w-5xl px-5">
+        <h2 className="mb-8 text-3xl font-normal text-ink-primary">What it actually does</h2>
+        <div className="grid gap-5 md:grid-cols-2">
+          {FEATURES.map((f) => (
+            <Card key={f.id} id={f.id} className={cn("min-w-0", f.large && "md:col-span-2")}>
+              <div className={f.large ? "grid gap-6 md:grid-cols-2 md:items-center" : undefined}>
+                <div>
+                  <h3 className="text-xl font-medium text-ink-primary">{f.title}</h3>
+                  <p className="mt-2 text-ink-muted">{f.body}</p>
+                </div>
+                <div className={f.large ? "" : "mt-4"}>{f.visual}</div>
               </div>
-              <div className={f.large ? "" : "mt-4"}>{f.visual}</div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
       </div>
     </section>
   );

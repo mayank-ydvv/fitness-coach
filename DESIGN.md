@@ -1140,3 +1140,17 @@ mobile stacked fallback at 360px shows the full-width card with no
 clipping; `npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y`
 (all 5, including the horizontal-scroll check this section's first
 pass broke and then fixed) clean.
+
+## §24 Problem section removed (2026-09-14)
+
+User asked to remove "Most plans ignore Tuesday" outright. Deleted
+`Problem.tsx`; `Features.tsx` is now the section directly after Hero
+and picks up the opaque `bg-surface-base` + `relative z-10` treatment
+Problem used to carry, so Hero's sticky-cover effect still has
+something to visually cover it with — otherwise the transform would
+still fire but there'd be nothing painting over Hero as it recedes.
+Hero's own comment updated to name Features instead of Problem.
+Verified the copy is actually gone from the page (not just visually
+hidden) and that Features still covers Hero correctly on scroll.
+`npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
+clean.

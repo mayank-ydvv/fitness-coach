@@ -1154,3 +1154,25 @@ Verified the copy is actually gone from the page (not just visually
 hidden) and that Features still covers Hero correctly on scroll.
 `npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
 clean.
+
+## §25 Features heading was peeking below the fold (2026-09-14)
+
+User screenshotted the live site: with Problem gone (§24), Hero's own
+content is short enough that "What it actually does" (Features'
+heading) was visible as a sliver at the bottom edge of the initial
+viewport — before any scrolling. Reads as a layout accident, not an
+intentional reveal.
+
+First instinct was to add top padding to Features — did that, measured
+the heading's position at a tall (1250px) test viewport, and it was
+still clearly visible (775px down, nowhere near the fold), because a
+fixed padding value can't account for how much window-height varies.
+Reverted that and fixed it at the source instead: Hero's sticky inner
+div gets `min-h-screen`, so Hero always occupies at least one full
+viewport regardless of its own content height — Features literally
+cannot start before the fold, on any window size. Verified by checking
+the heading's `getBoundingClientRect().top` against `window.innerHeight`
+at two very different viewport heights (1250px and 800px) rather than
+eyeballing a screenshot, confirming it stays below the fold at both.
+`npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
+clean.

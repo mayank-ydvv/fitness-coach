@@ -143,7 +143,9 @@ const FEATURES = [
  * Immediately follows the sticky Hero now that Problem is gone (see
  * Hero.tsx) — an opaque, full-width background plus `relative z-10` is
  * what makes it visually scroll up and cover Hero rather than the two
- * overlapping with no clear front/back order.
+ * overlapping with no clear front/back order. Hero's own `min-h-screen`
+ * (not padding here) is what keeps this heading below the fold on the
+ * initial load — see Hero.tsx.
  */
 export function Features() {
   return (

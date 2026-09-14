@@ -57,9 +57,17 @@ export function Hero() {
     setRecede({ scale: 1 - v * 0.04, darken: v * 0.4 });
   });
 
+  // `min-h-screen` here (not extra padding on Features) is what keeps
+  // Features' heading below the fold on load — with Problem removed,
+  // Hero's own content is short enough on common window heights that
+  // "What it actually does" otherwise peeks in at the bottom edge
+  // before any scrolling, which reads as a layout accident rather than
+  // an intentional reveal (reported against a real screenshot, not a
+  // guess). Tying it to the viewport rather than a fixed padding value
+  // means it holds regardless of window height.
   return (
     <div ref={measureRef} id="top">
-      <div className="sticky top-0 z-0 mx-auto max-w-5xl px-5 pb-20 pt-10 lg:pt-16">
+      <div className="sticky top-0 z-0 mx-auto min-h-screen max-w-5xl px-5 pb-20 pt-10 lg:pt-16">
       <div style={reduceMotion ? undefined : { transform: `scale(${recede.scale})` }}>
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}

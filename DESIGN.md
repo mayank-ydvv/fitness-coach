@@ -889,3 +889,53 @@ same content and order). The stacked path is also what
 `prefers-reduced-motion` renders — not separately screenshotted, since
 it's the identical component already verified under the mobile check.
 `npm run test:a11y` (all 5) passes after the change.
+
+## §19 The sticky-hero-covered mechanic (2026-09-14)
+
+Completed the brief's §5 mechanic that §18 deliberately deferred: Hero
+now stays pinned (`position: sticky; top: 0`) while Problem — the very
+next section — scrolls up over it. `Problem.tsx` was given an opaque
+`bg-surface-base` (previously it inherited the page background with no
+own fill, which happened to be the same color as Hero, so there was
+nothing to visually "cover" with) and `relative z-10` so it explicitly
+paints in front. Hero itself gets a slight scale-down (1 → 0.96) and
+darken (0 → 0.4 opacity black overlay) as it's covered, driven
+continuously by scroll position, so it reads as receding rather than
+just being clipped off — exactly the brief's own description of the
+effect.
+
+**Two more real bugs, both found by reading actual computed styles, not
+by eye — the screenshot tool's rendering of this custom-emulated
+viewport size turned out to be visually unreliable for wide layouts, so
+`getBoundingClientRect()`/`getComputedStyle()` checks were the ground
+truth throughout this section, confirmed against a plain narrower
+viewport once the numbers checked out:**　
+
+1. Passing a scroll-linked `useTransform` value straight into a
+   `motion.div`'s `style` prop *alongside* an `animate` prop targeting a
+   different property (`opacity`/`y`) rendered as `transform: none` —
+   the value never took effect, even though the source `scrollYProgress`
+   was confirmed live via a temporary on-screen debug readout. This is
+   the same class of bug as §18's chapter-crossfade issue. Fixed the
+   same way: `useMotionValueEvent` computes `scale`/`darken` into plain
+   React state, applied via a plain (non-`motion`) wrapping `div`'s
+   inline `style` — sidestepping Motion's `style`+`animate` merge
+   entirely rather than fighting it.
+
+2. Even after that fix, progress stayed frozen at its initial value.
+   Cause: `useScroll({ target })` was pointed at the sticky element
+   *itself*. Once a sticky element is pinned, its own
+   `getBoundingClientRect()` freezes at its stuck position (`top: 0`)
+   and never changes again no matter how far you keep scrolling — so
+   scroll progress measured against it plateaus at whatever value it had
+   the instant it became stuck. `ProductPreview.tsx`'s chapter sequence
+   never hit this because its `ref` was always on the outer, *non*-sticky
+   `<section>`, with the sticky positioning one level inside. Fixed Hero
+   the same way: the ref moved to a new plain outer wrapper; the
+   `sticky` class moved to a plain inner `div` one level down.
+
+Verified via `getBoundingClientRect`/`getComputedStyle` at several
+scroll positions (0, mid-recede, fully covered) confirming the recede
+transform ramps from `scale(1)`/`opacity 0` to `scale(0.96)`/
+`opacity 0.4` and clamps there — plus `npx tsc --noEmit`, `npm run lint`,
+and `npm run test:a11y` (all 5) clean after the change.

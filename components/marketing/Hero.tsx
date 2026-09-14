@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Card } from "@/components/ui/Card";
@@ -32,14 +32,41 @@ export function Hero() {
   const skipEntrance = reduceMotion || !hasInteracted;
   const days = PLAN_PREVIEWS[goal];
 
+  // The brief's §5 "sticky hero, covered by the next section": Hero
+  // stays pinned at the top while Problem (the next section, given an
+  // opaque background — see Problem.tsx) scrolls up over it. Progress
+  // is 0 while Hero is still fully in view and 1 once it's scrolled
+  // fully past — i.e. exactly "how covered is it right now" — driving a
+  // slight scale-down and darken so it reads as receding, not just
+  // getting clipped. This app's hero is light/content-first rather than
+  // the full-bleed dark image the brief's mechanic assumes, so the
+  // "covering" itself is subtle; the recede transform still reads.
+  // Progress must be measured against a plain, non-sticky wrapper, not
+  // the sticky element itself — once a sticky element is pinned, its own
+  // `getBoundingClientRect()` freezes at its stuck position (top: 0) and
+  // never changes again no matter how far you keep scrolling, so
+  // `useScroll({ target })` on the sticky node itself plateaus at
+  // whatever progress it had the instant it became stuck (found by
+  // reading the actual computed style, not by eye — see DESIGN.md §19).
+  // `measureRef` sits on the outer, normal-flow div; the sticky
+  // positioning lives one level in.
+  const measureRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: measureRef, offset: ["start start", "end start"] });
+  const [recede, setRecede] = useState({ scale: 1, darken: 0 });
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    setRecede({ scale: 1 - v * 0.04, darken: v * 0.4 });
+  });
+
   return (
-    <div id="top" className="mx-auto max-w-5xl px-5 pb-20 pt-10 lg:pt-16">
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: DURATION.hero, ease: EASE.standard }}
-        className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-16"
-      >
+    <div ref={measureRef} id="top">
+      <div className="sticky top-0 z-0 mx-auto max-w-5xl px-5 pb-20 pt-10 lg:pt-16">
+      <div style={reduceMotion ? undefined : { transform: `scale(${recede.scale})` }}>
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: DURATION.hero, ease: EASE.standard }}
+          className="grid gap-10 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-16"
+        >
         <div>
           <h1 className="max-w-md text-4xl font-normal leading-[1.05] tracking-[-0.02em] text-ink-primary lg:text-5xl">
             Pick where you&apos;re starting.
@@ -109,7 +136,12 @@ export function Hero() {
             </AnimatePresence>
           </div>
         </Card>
-      </motion.div>
+        </motion.div>
+      </div>
+      {!reduceMotion && (
+        <div aria-hidden style={{ opacity: recede.darken }} className="pointer-events-none absolute inset-0 bg-ink-primary" />
+      )}
+      </div>
     </div>
   );
 }

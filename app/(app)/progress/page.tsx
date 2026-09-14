@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getMeasure } from "@/lib/prefs/server";
-import { todayLocal, addDaysLocal, weekStartLocal } from "@/lib/time/localDay";
+import { todayLocal, addDaysLocal, weekStartLocal, dayRangeUtc } from "@/lib/time/localDay";
 import { computeDailyRollup } from "@/lib/nutrition/rollup";
 import { proteinSevenDayAverage } from "@/lib/progress/series";
 import { volumeBand, reportVolume } from "@/lib/training/volume";
@@ -32,6 +32,7 @@ export default async function ProgressPage() {
   const timezone = profile?.timezone ?? "UTC";
   const today = todayLocal(timezone);
   const twelveWeeksAgo = addDaysLocal(today, -84);
+  const twelveWeeksAgoUtc = dayRangeUtc(twelveWeeksAgo, timezone).start;
 
   // Unbounded (not capped to twelveWeeksAgo like the training/nutrition
   // queries below) — WeightTrend's own "All" range option needs actual
@@ -61,9 +62,14 @@ export default async function ProgressPage() {
   const exerciseById = new Map((exerciseRows ?? []).map((e) => [e.id, e]));
 
   // Weekly volume: last 7 days of working sets, credited by muscle group.
+  // `completed_at` is a full UTC timestamp — comparing it against the
+  // correct UTC instant for "7 local days ago" (not the bare date
+  // string, which string-compares as UTC midnight) for the same reason
+  // every DB query below uses dayRangeUtc instead of a raw literal.
   const weekAgo = addDaysLocal(today, -7);
+  const weekAgoUtc = dayRangeUtc(weekAgo, timezone).start;
   const lastWeekSets = (setLogs ?? [])
-    .filter((l) => l.completed_at >= weekAgo && !l.is_warmup)
+    .filter((l) => l.completed_at >= weekAgoUtc && !l.is_warmup)
     .map((l) => {
       const ex = exerciseById.get(l.exercise_id);
       return { isWarmup: false, primaryMuscle: ex?.primary_muscle ?? "", secondaryMuscles: ex?.secondary_muscles ?? [] };
@@ -101,7 +107,7 @@ export default async function ProgressPage() {
     .from("meals")
     .select("eaten_at, status, meal_items(protein_g, carbs_g, fat_g, kcal)")
     .eq("user_id", user.id)
-    .gte("eaten_at", `${weekAgo}T00:00:00`);
+    .gte("eaten_at", weekAgoUtc);
   const mealsByDay = new Map<string, typeof meals>();
   for (const m of meals ?? []) {
     const day = m.eaten_at.slice(0, 10);
@@ -139,7 +145,7 @@ export default async function ProgressPage() {
         .from("workout_sessions")
         .select("started_at, session_rpe")
         .eq("user_id", user.id)
-        .gte("started_at", `${twelveWeeksAgo}T00:00:00`)
+        .gte("started_at", twelveWeeksAgoUtc)
         .not("session_rpe", "is", null),
       supabase
         .from("habit_logs")

@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import { todayLocal } from "@/lib/time/localDay";
+import { todayLocal, dayRangeUtc } from "@/lib/time/localDay";
 import { shouldAutoCompleteMeals, shouldAutoCompleteWorkout } from "./autoComplete";
 
 /**
@@ -16,6 +16,7 @@ export async function applyAutoHabits(
   const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", params.userId).single();
   const timezone = profile?.timezone ?? "UTC";
   const today = todayLocal(timezone);
+  const { start, end } = dayRangeUtc(today, timezone);
 
   if (params.trigger === "workout_completed") {
     const { count } = await supabase
@@ -23,8 +24,8 @@ export async function applyAutoHabits(
       .select("id", { count: "exact", head: true })
       .eq("user_id", params.userId)
       .not("ended_at", "is", null)
-      .gte("started_at", `${today}T00:00:00`)
-      .lte("started_at", `${today}T23:59:59`);
+      .gte("started_at", start)
+      .lt("started_at", end);
     if (!shouldAutoCompleteWorkout(count ?? 0)) return;
   } else {
     const { count } = await supabase
@@ -32,8 +33,8 @@ export async function applyAutoHabits(
       .select("id", { count: "exact", head: true })
       .eq("user_id", params.userId)
       .in("status", ["ready", "manual"])
-      .gte("eaten_at", `${today}T00:00:00`)
-      .lte("eaten_at", `${today}T23:59:59`);
+      .gte("eaten_at", start)
+      .lt("eaten_at", end);
     if (!shouldAutoCompleteMeals(count ?? 0)) return;
   }
 

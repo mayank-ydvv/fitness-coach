@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
-import { addDaysLocal } from "@/lib/time/localDay";
+import { addDaysLocal, dayRangeUtc } from "@/lib/time/localDay";
 import { computeDailyRollup } from "@/lib/nutrition/rollup";
 import { proteinSevenDayAverage } from "@/lib/progress/series";
 import { computeStreaks } from "@/lib/habits/streaks";
@@ -29,15 +29,17 @@ export async function getTodayInsight(
   supabase: SupabaseClient<Database>,
   userId: string,
   todayLocalDate: string,
+  timezone: string,
 ): Promise<Insight | null> {
   const weekAgo = addDaysLocal(todayLocalDate, -7);
+  const weekAgoUtc = dayRangeUtc(weekAgo, timezone).start;
 
   const [{ data: meals }, { data: targetsRow }, { data: habits }] = await Promise.all([
     supabase
       .from("meals")
       .select("eaten_at, status, meal_items(protein_g, carbs_g, fat_g, kcal)")
       .eq("user_id", userId)
-      .gte("eaten_at", `${weekAgo}T00:00:00`),
+      .gte("eaten_at", weekAgoUtc),
     supabase
       .from("nutrition_targets")
       .select("protein_g")

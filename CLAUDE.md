@@ -208,7 +208,19 @@ Don't remove that emulation to "simplify" the test.
   directly (eslint `no-restricted-imports` enforces this).
 - "Today" is computed only via `lib/time/localDay.ts` (same eslint rule) —
   never compare a bare `new Date()` against a stored date string, or streaks
-  and daily rollups snap to the wrong midnight for non-UTC users.
+  and daily rollups snap to the wrong midnight for non-UTC users. The same
+  file's `dayRangeUtc(date, timezone)` is the *only* correct way to query a
+  `timestamptz` column (`eaten_at`, `started_at`) for a given local day —
+  never a bare `` `${date}T00:00:00` `` literal. Postgres/PostgREST parses
+  that in the DB session's timezone (UTC here), not the user's, so for
+  anyone not at UTC+0 there's a multi-hour window every day where a row
+  correctly stored for "today" locally falls outside a same-day query built
+  that way. This is a real bug that shipped and was reported as "I logged a
+  meal and it vanished a few minutes later" — the meal wasn't deleted, a
+  later refetch just silently excluded it by day. Fixed across every
+  `eaten_at`/`started_at` day-range query in one pass (`grep -rn
+  "T00:00:00"` to check you haven't reintroduced it) — see the comment on
+  `dayRangeUtc` itself for the mechanism.
 - Every user-generated row's UUID is created client-side
   (`crypto.randomUUID()`), not server-side — this is what makes optimistic
   updates and Realtime patches idempotent by construction. Don't switch a

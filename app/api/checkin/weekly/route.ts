@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { generateWeeklyCheckin } from "@/lib/ai/weeklyCheckin";
 import { assertUnderDailyCap, recordAiJob, DailyCapError } from "@/lib/ai/jobs";
 import { MODEL } from "@/lib/ai/client";
-import { addDaysLocal, todayLocal } from "@/lib/time/localDay";
+import { addDaysLocal, todayLocal, dayRangeUtc } from "@/lib/time/localDay";
 import { computeDailyRollup } from "@/lib/nutrition/rollup";
 
 export const maxDuration = 30;
@@ -29,6 +29,7 @@ export async function POST() {
   const timezone = profile?.timezone ?? "UTC";
   const today = todayLocal(timezone);
   const weekAgo = addDaysLocal(today, -7);
+  const weekAgoUtc = dayRangeUtc(weekAgo, timezone).start;
 
   const { data: targetsRow } = await supabase
     .from("nutrition_targets")
@@ -43,7 +44,7 @@ export async function POST() {
     .select("id, ended_at")
     .eq("user_id", user.id)
     .not("ended_at", "is", null)
-    .gte("started_at", `${weekAgo}T00:00:00`);
+    .gte("started_at", weekAgoUtc);
 
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const { data: setLogs } = sessionIds.length
@@ -56,7 +57,7 @@ export async function POST() {
     .from("meals")
     .select("eaten_at, status, meal_items(protein_g, carbs_g, fat_g, kcal)")
     .eq("user_id", user.id)
-    .gte("eaten_at", `${weekAgo}T00:00:00`);
+    .gte("eaten_at", weekAgoUtc);
 
   const mealsByDay = new Map<string, typeof meals>();
   for (const m of meals ?? []) {

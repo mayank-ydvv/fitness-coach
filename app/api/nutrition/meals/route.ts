@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { applyAutoHabits } from "@/lib/habits/apply";
+import { dayRangeUtc } from "@/lib/time/localDay";
 import { MEAL_STATUSES, MEAL_TYPES } from "@/lib/types";
 
 const CreateMealSchema = z.object({
@@ -63,12 +64,21 @@ export async function GET(request: Request) {
   const date = searchParams.get("date"); // YYYY-MM-DD, in the caller's local timezone
   if (!date) return NextResponse.json({ error: "date query param is required." }, { status: 400 });
 
+  // The caller's local timezone is needed to turn `date` into the right
+  // UTC instant range (see dayRangeUtc) — a bare `${date}T00:00:00`
+  // literal is parsed in the DB session's timezone (UTC), not the
+  // user's, which is exactly what made a just-logged meal disappear on
+  // this route's next poll for any non-UTC user (see localDay.ts).
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", user.id).single();
+  const timezone = profile?.timezone ?? "UTC";
+  const { start, end } = dayRangeUtc(date, timezone);
+
   const { data, error } = await supabase
     .from("meals")
     .select("*, meal_items(*)")
     .eq("user_id", user.id)
-    .gte("eaten_at", `${date}T00:00:00`)
-    .lte("eaten_at", `${date}T23:59:59`)
+    .gte("eaten_at", start)
+    .lt("eaten_at", end)
     .order("eaten_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: "Couldn't load meals." }, { status: 500 });

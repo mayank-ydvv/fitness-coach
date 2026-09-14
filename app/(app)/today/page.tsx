@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getMeasure } from "@/lib/prefs/server";
-import { todayLocal } from "@/lib/time/localDay";
+import { todayLocal, dayRangeUtc } from "@/lib/time/localDay";
 import { getTodayInsight } from "@/lib/progress/todayInsight";
 import { EnergyRing } from "@/components/today/EnergyRing";
 import { MacroOnlyHero } from "@/components/today/MacroOnlyHero";
@@ -70,8 +70,7 @@ export default async function TodayPage() {
 
   const timezone = profile?.timezone ?? "UTC";
   const today = todayLocal(timezone);
-  const dayStart = `${today}T00:00:00`;
-  const dayEnd = `${today}T23:59:59`;
+  const { start: dayStart, end: dayEnd } = dayRangeUtc(today, timezone);
 
   // Rollup: sum today's ready/manual meals' items. M2 owns the full
   // lib/nutrition/rollup.ts (which also excludes processing/failed and
@@ -83,10 +82,10 @@ export default async function TodayPage() {
       .select("id, meal_type, status, eaten_at, meal_items(kcal, protein_g, carbs_g, fat_g)")
       .eq("user_id", user.id)
       .gte("eaten_at", dayStart)
-      .lte("eaten_at", dayEnd)
+      .lt("eaten_at", dayEnd)
       .in("status", ["ready", "manual"])
       .order("eaten_at", { ascending: false }),
-    getTodayInsight(supabase, user.id, today),
+    getTodayInsight(supabase, user.id, today, timezone),
   ]);
 
   const consumed = (meals ?? []).reduce(

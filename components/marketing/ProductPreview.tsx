@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { cn } from "@/lib/cn";
+import { EASE } from "@/lib/motion/tokens";
 
 const CHAPTERS = [
   {
@@ -62,58 +63,68 @@ export function ProductPreview() {
   );
 }
 
-/**
- * Per-chapter crossfade curve. Each chapter occupies [left, right]; the
- * fade in/out ramps are centered ON the shared boundary with its
- * neighbor (a `2*fade`-wide window straddling `left`/`right` equally),
- * not offset to one side of it — a real bug shipped briefly where the
- * fade-out ramp sat entirely AFTER the boundary and the fade-in ramp
- * sat entirely BEFORE it, so neither ramp actually overlapped the
- * other: each chapter reached its own full opacity independently right
- * at the boundary, and both chapters were fully visible at once for a
- * stretch (a visible "double exposure", reported by the user against
- * the live site). Centering both ramps on the same window makes them
- * complementary — at any point inside it, the two chapters' opacities
- * sum to 1, so there's never a moment where both read as fully opaque.
- */
-function chapterOpacity(v: number, index: number, total: number, fade = 0.05) {
-  const step = 1 / total;
-  const left = index * step;
-  const right = left + step;
-  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
-  const rampIn = index === 0 ? 1 : clamp01((v - (left - fade)) / (2 * fade));
-  const rampOut = index === total - 1 ? 1 : clamp01((right + fade - v) / (2 * fade));
-  return Math.min(rampIn, rampOut);
+function activeChapterIndex(v: number, total: number) {
+  return Math.min(total - 1, Math.max(0, Math.floor(v * total)));
 }
 
+/**
+ * Two earlier passes at this tried to keep exactly one chapter fully
+ * legible AND keep a continuous scroll-linked opacity crossfade between
+ * neighbors (per the brief's "left copy cross-fades"). The first had a
+ * real bug (adjacent fade windows didn't overlap, so both chapters hit
+ * full opacity independently right at the boundary). The second fixed
+ * that bug — the two opacities were verified to sum to exactly 1 at
+ * every point — and the result was STILL an unreadable double-exposure
+ * whenever a visitor stopped scrolling mid-transition (confirmed against
+ * the live site, not just in theory): a 60/40 opacity blend of two
+ * overlapping paragraphs of text, or two overlapping card mockups, reads
+ * as noise, not a crossfade — unlike the full-bleed video/photography
+ * the brief's mechanic assumes, where a 60/40 blend still reads fine.
+ *
+ * So the foreground content (copy + mockup) now swaps with a clean,
+ * non-overlapping `AnimatePresence mode="wait"` fade keyed on the
+ * active chapter — the outgoing chapter fully leaves before the next
+ * one enters, so there's never a moment with two chapters' text
+ * simultaneously legible, no matter where a visitor stops scrolling.
+ * It's still entirely scroll-driven (the active index is derived from
+ * `scrollYProgress`, runs backwards fine) — just discretized at the
+ * point where "which chapter" flips, rather than blended continuously.
+ */
 function PinnedChapters() {
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
   const [active, setActive] = useState(0);
-  const [opacities, setOpacities] = useState(() => CHAPTERS.map((_, i) => chapterOpacity(0, i, CHAPTERS.length)));
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setActive(Math.min(CHAPTERS.length - 1, Math.max(0, Math.floor(v * CHAPTERS.length))));
-    setOpacities(CHAPTERS.map((_, i) => chapterOpacity(v, i, CHAPTERS.length)));
+    setActive(activeChapterIndex(v, CHAPTERS.length));
   });
+
+  const chapter = CHAPTERS[active];
 
   return (
     <section ref={ref} id="preview" className="relative" style={{ height: `${CHAPTERS.length * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-surface-inverse">
-        {CHAPTERS.map((c, i) => (
-          <div key={c.n} style={{ opacity: opacities[i] }} className="absolute inset-0 flex items-center">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={chapter.n}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: EASE.standard }}
+            className="absolute inset-0 flex items-center"
+          >
             <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-10 px-5 lg:grid-cols-[1fr_1fr]">
               <div className="max-w-md">
-                <p className="metric text-sm text-ink-on-brand/50">{c.n}</p>
-                <h3 className="mt-3 text-3xl font-normal text-ink-on-brand">{c.title}</h3>
-                <p className="mt-4 text-ink-on-brand/70">{c.body}</p>
+                <p className="metric text-sm text-ink-on-brand/50">{chapter.n}</p>
+                <h3 className="mt-3 text-3xl font-normal text-ink-on-brand">{chapter.title}</h3>
+                <p className="mt-4 text-ink-on-brand/70">{chapter.body}</p>
               </div>
               <div className="flex justify-center lg:justify-end">
-                <ChapterVisual index={i} />
+                <ChapterVisual index={active} />
               </div>
             </div>
-          </div>
-        ))}
+          </motion.div>
+        </AnimatePresence>
 
         <div className="absolute right-6 top-1/2 hidden -translate-y-1/2 flex-col gap-4 text-right md:right-10 lg:flex">
           {CHAPTERS.map((c, i) => (

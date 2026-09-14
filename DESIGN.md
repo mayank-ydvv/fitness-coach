@@ -973,3 +973,39 @@ transition: 1.00/0.00 → 0.06/0.94 → 0.00/1.00, strictly monotonic and
 summing to 1, never both high) and visually in the browser — one legible
 chapter at a time, no overlap. `npx tsc --noEmit`, `npm run lint`, and
 `npm run test:a11y` (all 5) clean.
+
+## §21 §20 wasn't enough — the double-exposure was a design problem, not a math bug (2026-09-14)
+
+User re-reported the same glitch against the live site (with a fresh
+screenshot) after §20 shipped. Reproduced it directly: scrolled to a
+point inside the crossfade window and read the actual opacities — 0.59
+and 0.41, summing to exactly 1, confirming §20's fix was mathematically
+correct. Screenshotted that exact moment anyway, and it looked just as
+broken as before.
+
+The real problem: §20 fixed *the math* but not *the premise*. The
+brief's crossfade assumes full-bleed photography or video, where a
+60/40 opacity blend of two frames still reads fine. This section's
+"media" is dense text and light UI-card mockups — for that content,
+*any* significant simultaneous opacity on two chapters reads as noise,
+correct math or not. Narrowing the fade window further would only
+shrink the odds of a visitor stopping mid-transition, not eliminate the
+failure mode.
+
+Replaced the continuous multi-chapter opacity blend with a clean
+`AnimatePresence mode="wait"` swap of the whole chapter block (copy +
+mockup together), keyed on the same scroll-derived `active` chapter
+index used for the numbered index. The outgoing chapter's exit
+animation fully finishes before the next one's enter animation starts —
+there is no scroll position, including a visitor stopping mid-scroll,
+where two chapters' text can be simultaneously legible. Still entirely
+scroll-driven (active is derived from `scrollYProgress` on every scroll
+frame, runs backwards fine) — just discretized at the point where
+"which chapter" flips, rather than blended.
+
+`chapterOpacity()` is gone; nothing else in the file needed to change.
+Verified by sampling the DOM at ten scroll offsets spanning all four
+chapters (including several deliberately inside the old crossfade
+zones) — exactly one chapter's content present at every single one, by
+element count, not just by eye. `npx tsc --noEmit`, `npm run lint`, and
+`npm run test:a11y` (all 5) clean.

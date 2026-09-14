@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/supabase/database.types";
+import { REMEMBER_COOKIE } from "@/lib/auth/rememberMe";
 
 // Next 15 uses middleware.ts (not proxy.ts, which is a Next 16 rename that
 // doesn't apply here). Refreshes the Supabase session cookie on every
@@ -35,14 +36,41 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // "Remember me" enforcement (see lib/auth/rememberMe.ts for the full
+  // reasoning). The Supabase session cookie itself always lives 400
+  // days — that can't be shortened through this library version's own
+  // config — so a "not remembered" choice instead leaves behind a
+  // second, real session-only cookie (REMEMBER_COOKIE) at sign-in time.
+  // If that marker is gone but a Supabase session still is here, the
+  // marker either expired (browser was closed and reopened — exactly
+  // the case a "not remembered" choice should end) or it never existed
+  // because this session predates this feature; either way, the
+  // correct move is to sign out now rather than trust a session that
+  // was never actually meant to persist.
+  let effectiveUser = user;
+  if (user && !request.cookies.has(REMEMBER_COOKIE)) {
+    await supabase.auth.signOut();
+    effectiveUser = null;
+  }
+
   const { pathname } = request.nextUrl;
   const isPublicRoute = pathname.startsWith("/login") || pathname.startsWith("/auth") || pathname.startsWith("/demo") || pathname === "/";
   const isAppRoute = !isPublicRoute;
 
-  if (!user && isAppRoute) {
+  if (!effectiveUser && isAppRoute) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    // `signOut()` above queued cookie-clearing writes onto `response` via
+    // the `setAll` callback — a fresh `NextResponse.redirect(...)` doesn't
+    // carry those, so without copying them the browser would keep the
+    // (now server-invalidated) session cookies and just get redirected
+    // back to /login on every following request without ever actually
+    // clearing them client-side.
+    for (const cookie of response.cookies.getAll()) {
+      redirectResponse.cookies.set(cookie);
+    }
+    return redirectResponse;
   }
 
   return response;

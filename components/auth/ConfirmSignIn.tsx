@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CircleCheck } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { setRememberCookie } from "@/lib/auth/rememberMe";
 import { Button } from "@/components/ui/Button";
 
 // A deliberate extra click between the emailed link and a live session —
@@ -29,11 +30,19 @@ export function ConfirmSignIn({ tokenHash, type, next }: { tokenHash: string; ty
       setStatus("error");
       return;
     }
+    // `next` carries the remember-me choice as a query param LoginForm put
+    // there (see its comment) — read it now that we have a session, then
+    // strip it so it doesn't linger in the URL bar after the redirect.
+    const nextUrl = new URL(next, window.location.origin);
+    const remember = nextUrl.searchParams.get("remember") !== "0";
+    nextUrl.searchParams.delete("remember");
+    setRememberCookie(remember);
+    const cleanNext = `${nextUrl.pathname}${nextUrl.search}`;
     // A real designed state, not padding: without it, verifying jumps
     // straight to a blank navigation with no confirmation the click
     // worked at all.
     setStatus("success");
-    setTimeout(() => router.replace(next), 500);
+    setTimeout(() => router.replace(cleanNext), 500);
   }
 
   if (status === "error") {

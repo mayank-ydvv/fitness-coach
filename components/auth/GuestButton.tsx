@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { setRememberCookie } from "@/lib/auth/rememberMe";
 import { cn } from "@/lib/cn";
 
 /**
@@ -41,6 +42,12 @@ export function GuestButton({
       setError(error.message);
       return;
     }
+    // Not about "remembering" a guest — it's to stop middleware.ts's new
+    // remember-me check from force-signing-out a guest mid-session (it
+    // would look identical to a real "not remembered" session that
+    // outlived a browser restart, but a guest's own cookie can't survive
+    // a restart anyway since nothing here sets a long-lived one).
+    setRememberCookie(true);
     router.replace(next);
   }
 

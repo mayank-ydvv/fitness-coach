@@ -19,6 +19,10 @@ export function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  // Defaults to checked — matches the app's actual default behavior
+  // (see lib/auth/rememberMe.ts): sessions already persist 400 days
+  // unless this box is unchecked.
+  const [rememberMe, setRememberMe] = useState(true);
 
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -34,10 +38,14 @@ export function LoginForm({ next }: { next?: string }) {
     // confirm page itself — the email template builds the actual
     // /auth/confirm?token_hash=...&next=... link using {{ .RedirectTo }} as
     // the next param (see the "Magic link or OTP" template in Supabase).
-    const redirectTo = `${window.location.origin}${next ?? "/today"}`;
+    // The remember-me choice rides along as a query param on that same
+    // URL — ConfirmSignIn reads it back out once verification succeeds
+    // and strips it before the final redirect (see that component).
+    const redirectUrl = new URL(next ?? "/today", window.location.origin);
+    redirectUrl.searchParams.set("remember", rememberMe ? "1" : "0");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo },
+      options: { emailRedirectTo: redirectUrl.toString() },
     });
     if (error) {
       setStatus("error");
@@ -50,10 +58,12 @@ export function LoginForm({ next }: { next?: string }) {
   async function signInWithGoogle() {
     const supabase = createClient();
     if (!supabase) return;
-    const redirectTo = `${window.location.origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`;
+    const redirectUrl = new URL("/auth/callback", window.location.origin);
+    if (next) redirectUrl.searchParams.set("next", next);
+    redirectUrl.searchParams.set("remember", rememberMe ? "1" : "0");
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { redirectTo: redirectUrl.toString() },
     });
   }
 
@@ -96,6 +106,15 @@ export function LoginForm({ next }: { next?: string }) {
             aria-invalid={status === "error"}
           />
         </Field>
+        <label className="-my-2.5 flex min-h-11 items-center gap-2.5 py-2.5 text-sm text-ink-primary">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="size-4 accent-action"
+          />
+          Keep me signed in on this device
+        </label>
         <Button type="submit" loading={status === "sending"} className="w-full">
           Send sign-in link
         </Button>

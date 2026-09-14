@@ -96,6 +96,48 @@ signs out first (cleaning up the guest row) rather than linking straight to
 anonymous session would silently orphan that anonymous user instead of
 cleaning it up.
 
+## "Remember me" (`lib/auth/rememberMe.ts`)
+
+The login page has a "Keep me signed in on this device" checkbox
+(`LoginForm.tsx`), checked by default. What it actually toggles is subtler
+than it looks — read `lib/auth/rememberMe.ts`'s own comment before touching
+any of this, but the short version:
+
+- The installed `@supabase/ssr` (0.12.7) hard-codes every session cookie it
+  writes to a 400-day `Max-Age`, regardless of any `cookieOptions.maxAge`
+  you pass to `createBrowserClient`/`createServerClient` — confirmed by
+  reading `storage.setItem` in `node_modules/@supabase/ssr/dist/module/
+  cookies.js`, not from the docs. So the Supabase session cookie itself
+  cannot be made to expire sooner than 400 days through supported config,
+  and "stay signed in until you sign out" is already the *default* — there
+  was nothing to build for the checked state.
+- The checkbox instead controls a second cookie, `remember-me`
+  (`REMEMBER_COOKIE`). Checked → also 400 days. Unchecked → no `Max-Age` at
+  all, so it's a real browser-session cookie that vanishes once every
+  window closes, while the underlying (un-shortenable) Supabase cookie
+  physically remains.
+- `middleware.ts` is what turns that into an actual sign-out: on every
+  request, if a Supabase session exists but the `remember-me` marker is
+  missing, it calls `supabase.auth.signOut()` before falling through to the
+  normal "no user" handling. Missing means either the marker expired
+  (browser was closed and reopened — exactly the case "not remembered"
+  should end) or the session predates this feature entirely, in which case
+  the user is signed out once and just signs in again.
+- Both auth paths have to set the marker themselves once a session exists:
+  `ConfirmSignIn.tsx` (magic link, client-side, right after `verifyOtp`) and
+  `app/auth/callback/route.ts` (Google, server-side, right after
+  `exchangeCodeForSession`) — the choice rides along as a `?remember=0|1`
+  query param on the same redirect URL each flow already uses, set by
+  `LoginForm.tsx`. `GuestButton.tsx` always sets it `true` regardless of any
+  checkbox — not because a guest session is meant to be "remembered" (guest
+  data is deleted on any sign-out anyway), but so middleware's check above
+  never force-signs-out a guest mid-session and leaves an orphaned
+  anonymous `auth.users` row behind (no `delete_account()` call on that
+  path, unlike the real sign-out route).
+- If you add a third auth entry point later, it needs the same
+  `setRememberCookie(...)` call — there's no single choke point that does
+  it automatically.
+
 ## Design system: re-themed from dark to light (healthifyme.com reference)
 
 The original build plan specifies a dark matte-graphite palette (spec §3:

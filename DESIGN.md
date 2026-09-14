@@ -1009,3 +1009,74 @@ chapters (including several deliberately inside the old crossfade
 zones) — exactly one chapter's content present at every single one, by
 element count, not just by eye. `npx tsc --noEmit`, `npm run lint`, and
 `npm run test:a11y` (all 5) clean.
+
+## §22 The whole landing page becomes chapters (2026-09-14)
+
+User liked the pinned-chapter mechanic and asked for the whole site to
+be divided into chapters using it, not just the one showcase section.
+Clarified scope via a direct question: merge Problem, Features,
+HowItWorks, and BuiltForEveryAge into the chapter sequence; leave FAQ
+and the closing CTA as normal sections (an accordion and a final CTA
+aren't narrative beats a visitor scrolls through passively).
+
+`ProductPreview.tsx` (4 chapters) is replaced by `ChapterSequence.tsx`
+(9 chapters), and `Problem.tsx`, `Features.tsx`, `HowItWorks.tsx`, and
+`BuiltForEveryAge.tsx` are deleted outright — their content is folded
+into the new chapters rather than kept as a second, redundant telling:
+Problem (condensed from three paragraphs to one), Onboarding, Today,
+Food (from Features' food card), Training, Habits (from Features'
+habits card), Progress, an AI note (from Features' AI card), and Built
+for every age. `HowItWorks`'s four numbered steps weren't given their
+own chapters — their content (start from your numbers, log what you
+did, it adjusts next week) was already covered by the merged chapters
+above, and repeating it as a tenth chapter would be pure duplication.
+900vh of pinned scroll is a real cost of "the whole page becomes
+chapters" — flagged, not hidden.
+
+`Nav.tsx`'s four section links (Training/Food/Habits/Progress) used to
+be plain `#id` anchors into their own standalone sections. Rewrote them
+to compute and scroll to the right slice of the single `#chapters`
+pinned section on desktop, falling back to a plain `scrollIntoView` on
+the stacked mobile/reduced-motion layout where each chapter is still a
+real, individually-`id`'d element.
+
+**Three real bugs, all found by actually clicking things and checking
+where they landed, not by reading the diff:**
+
+1. **Duplicate `id="chapters"`.** Both the pinned and stacked wrapper
+   sections had it — both branches are always mounted (`hidden`/
+   `md:hidden` only toggles CSS display, never unmounts either one), so
+   `document.getElementById` resolved ambiguously. Removed the id from
+   the stacked wrapper; only individual stacked chapters need their own
+   id, and the outer wrapper never did.
+2. **Nav's per-anchor links silently did nothing on desktop.**
+   `document.getElementById(anchor)` always found the *stacked* variant's
+   chapter div (same "always mounted" reason as above), and calling
+   `scrollIntoView` on a `display: none` element is a silent no-op.
+   Fixed by checking `offsetParent !== null` — null for a hidden element
+   and everything inside one — to tell which branch is actually
+   rendered, not just present in the DOM.
+3. **Nav's computed scroll target landed one chapter later than
+   intended.** It divided the section's full height by the chapter count
+   to get a per-chapter pixel step. But the actual scroll distance a
+   `sticky` child advances over is the section's height *minus the
+   viewport height* (`ChapterSequence`'s own `useScroll` uses exactly
+   this via its `["start start", "end end"]` offset) — using the full
+   height overshoots, compounding across chapters until it's a whole
+   chapter off. Clicking "Habits" landed on the Progress chapter until
+   this was fixed; verified after by checking all four nav links land on
+   their own named chapter, not just that they scroll somewhere.
+
+Also hit a `ReferenceError` from a stale Turbopack HMR cache still
+referencing a variable already removed from source (confirmed by
+diffing the error against the actual file, which had no such
+reference) — resolved with a full dev-server restart and a `.next`
+cache clear, not a code change.
+
+Verified: real scroll-wheel input advancing correctly through several
+chapters in sequence (not just programmatic jumps, which turned out to
+have their own unrelated timing quirks against this large a section);
+all four nav links landing on their correctly-named chapter; the mobile
+stacked fallback rendering all 9 chapters with working anchor ids;
+`npx tsc --noEmit`, `npm run lint`, and `npm run test:a11y` (all 5)
+clean.

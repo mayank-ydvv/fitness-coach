@@ -5,13 +5,64 @@ import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { CHAPTER_COUNT, chapterIndexForAnchor } from "./ChapterSequence";
 
 const ANCHORS = [
-  { href: "#training", label: "Training" },
-  { href: "#food", label: "Food" },
-  { href: "#habits", label: "Habits" },
-  { href: "#progress", label: "Progress" },
+  { anchor: "training", label: "Training" },
+  { anchor: "food", label: "Food" },
+  { anchor: "habits", label: "Habits" },
+  { anchor: "progress", label: "Progress" },
 ];
+
+/**
+ * The four chapters these nav links used to jump straight to (via a
+ * plain `#id` anchor on their own section) now live inside
+ * ChapterSequence's single pinned `#chapters` section, where only the
+ * active chapter is actually mounted at any moment (see
+ * ChapterSequence.tsx) — a plain hash link would only work on whichever
+ * chapter happens to be mounted already. On the pinned (desktop) layout
+ * this computes and scrolls to that chapter's slice of the section's
+ * total scroll distance instead; on the stacked mobile/reduced-motion
+ * fallback, every chapter is its own real element with its own id, so a
+ * plain scrollIntoView already works.
+ *
+ * Both the pinned and stacked trees are always mounted — the `hidden`/
+ * `md:hidden` classes that pick between them only toggle CSS display,
+ * they don't unmount either branch — so `getElementById(anchor)` finds
+ * the stacked chapter's div even on desktop, where it's
+ * `display: none` and `scrollIntoView` on it silently does nothing
+ * (found by actually clicking the link, not by reading the diff — it
+ * looked correct until tried). Checking `offsetParent !== null` (null
+ * for a `display: none` element and everything inside one) is what
+ * actually distinguishes "this branch is the one currently rendered."
+ */
+function scrollToChapter(anchor: string) {
+  const index = chapterIndexForAnchor(anchor);
+  if (index < 0) return;
+
+  const stackedEl = document.getElementById(anchor);
+  if (stackedEl && stackedEl.offsetParent !== null) {
+    stackedEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const chaptersEl = document.getElementById("chapters");
+  if (!chaptersEl) return;
+  const rect = chaptersEl.getBoundingClientRect();
+  const top = rect.top + window.scrollY;
+  // The scroll distance that actually maps to progress 0→1 is the
+  // section's height MINUS the viewport height (a `sticky` child stops
+  // advancing once its own bottom reaches the viewport bottom — the
+  // same "end end" offset ChapterSequence's own useScroll uses) — not
+  // the section's full height. Using the full height here overshoots
+  // by one viewport's worth spread across all chapters, landing one
+  // chapter past the intended one (found by actually clicking the
+  // link and checking which chapter it landed on, not by the math
+  // looking right on paper).
+  const span = chaptersEl.offsetHeight - window.innerHeight;
+  const step = span / CHAPTER_COUNT();
+  window.scrollTo({ top: top + step * (index + 0.5), behavior: "smooth" });
+}
 
 /**
  * Detaches from a full-width transparent bar into a centered floating
@@ -90,7 +141,15 @@ function NavContent() {
       </Link>
       <nav aria-label="Section" className="hidden items-center gap-6 md:flex">
         {ANCHORS.map((a) => (
-          <a key={a.href} href={a.href} className="text-sm font-medium text-ink-muted hover:text-ink-primary">
+          <a
+            key={a.anchor}
+            href={`#${a.anchor}`}
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToChapter(a.anchor);
+            }}
+            className="text-sm font-medium text-ink-muted hover:text-ink-primary"
+          >
             {a.label}
           </a>
         ))}

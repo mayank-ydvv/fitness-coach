@@ -4,7 +4,7 @@ import { EQUIPMENT, type Equipment } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import type { StepProps } from "./types";
 
-const LABELS: Record<Equipment, string> = {
+export const EQUIPMENT_LABELS: Record<Equipment, string> = {
   barbell: "Barbell",
   dumbbell: "Dumbbell",
   machine: "Machines",
@@ -35,10 +35,10 @@ export function StepEquipment({ draft, patch }: StepProps) {
               onClick={() => toggle(item)}
               className={cn(
                 "min-h-14 rounded-control border px-4 py-3 text-left text-sm font-medium",
-                active ? "border-load-blue bg-load-blue-soft text-ink-primary" : "border-hairline bg-surface-sunken text-ink-muted",
+                active ? "border-action bg-action/10 text-ink-primary" : "border-hairline bg-surface-sunken text-ink-muted",
               )}
             >
-              {LABELS[item]}
+              {EQUIPMENT_LABELS[item]}
             </button>
           );
         })}

@@ -110,7 +110,7 @@ export function CaptureClient({
 
       <ConfidenceBar framesTotal={session.framesTotal} framesDropped={session.framesDropped} onRerecord={() => setStarted(false)} />
 
-      {session.errorMessage ? <p className="text-sm text-load-red">{session.errorMessage}</p> : null}
+      {session.errorMessage ? <p className="text-sm text-action-danger">{session.errorMessage}</p> : null}
 
       <Button size="lg" disabled={submitting} onClick={handleStop} className="w-full">
         {submitting ? "Analyzing…" : "Stop and review"}

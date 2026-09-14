@@ -9,7 +9,21 @@ import { HABIT_CADENCES } from "@/lib/types";
 
 export type HabitDraft = { name: string; emoji: string; cadence: "daily" | "weekly"; targetPerWeek: number; restDayEnabled: boolean };
 
-export function HabitEditor({ initial, onSubmit, onCancel }: { initial?: Partial<HabitDraft>; onSubmit: (draft: HabitDraft) => void; onCancel?: () => void }) {
+export function HabitEditor({
+  initial,
+  onSubmit,
+  onCancel,
+  onArchive,
+}: {
+  initial?: Partial<HabitDraft>;
+  onSubmit: (draft: HabitDraft) => void;
+  onCancel?: () => void;
+  // Present only when editing an existing habit — "easy add, edit,
+  // reorder, and archive" (brief §11). Wires an endpoint
+  // (PATCH /api/habits/[id] with archived:true) that already existed
+  // but had no UI calling it.
+  onArchive?: () => void;
+}) {
   const [name, setName] = useState(initial?.name ?? "");
   const [emoji, setEmoji] = useState(initial?.emoji ?? "");
   const [cadence, setCadence] = useState<"daily" | "weekly">(initial?.cadence ?? "daily");
@@ -32,7 +46,7 @@ export function HabitEditor({ initial, onSubmit, onCancel }: { initial?: Partial
             onClick={() => setCadence(c)}
             className={
               "min-h-9 flex-1 rounded-control border px-3 text-sm capitalize " +
-              (cadence === c ? "border-load-blue bg-load-blue-soft text-ink-primary" : "border-hairline text-ink-muted")
+              (cadence === c ? "border-action bg-action/10 text-ink-primary" : "border-hairline text-ink-muted")
             }
           >
             {c}
@@ -60,6 +74,11 @@ export function HabitEditor({ initial, onSubmit, onCancel }: { initial?: Partial
           Save
         </Button>
       </div>
+      {onArchive ? (
+        <button type="button" onClick={onArchive} className="text-sm font-medium text-action-danger underline-offset-2 hover:underline">
+          Archive this habit
+        </button>
+      ) : null}
     </div>
   );
 }

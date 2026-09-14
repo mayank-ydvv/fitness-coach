@@ -11,6 +11,24 @@ export function weightTrend(bodyMetrics: { recorded_on: string; weight_kg: numbe
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/**
+ * Exponential moving average over the raw entries — "must show a
+ * smoothed trend line, not just daily dots... daily fluctuation is
+ * noise" (brief §12). EMA rather than a fixed-window average because
+ * weigh-ins are rarely daily/regular; a trailing N-point average would
+ * quietly change meaning as logging frequency changes, EMA doesn't.
+ * alpha=0.25 is a moderate smooth — enough to kill day-to-day water-
+ * weight noise without lagging a real trend change by weeks.
+ */
+export function smoothWeightTrend(points: WeightPoint[], alpha = 0.25): WeightPoint[] {
+  if (points.length === 0) return [];
+  let ema = points[0].weightKg;
+  return points.map((p, i) => {
+    ema = i === 0 ? p.weightKg : alpha * p.weightKg + (1 - alpha) * ema;
+    return { date: p.date, weightKg: Math.round(ema * 10) / 10 };
+  });
+}
+
 export type E1rmPoint = { date: string; e1rm: number };
 /** Best TRUSTED e1RM per calendar day for one exercise, sorted ascending —
  * untrusted (reps > 12) sets never distort the trend line. */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Stepper } from "@/components/ui/Stepper";
 import { Button } from "@/components/ui/Button";
 import { useMeasure } from "@/components/prefs/PreferencesProvider";
@@ -30,12 +30,13 @@ export function SetRow({
   onLog: (reps: number, loadKg: number, rpe: number | null) => void;
 }) {
   const measure = useMeasure();
+  const reduceMotion = useReducedMotion();
   const [reps, setReps] = useState(set.targetRepsHigh);
   const [loadKg, setLoadKg] = useState(set.targetLoadKg ?? last?.loadKg ?? 20);
   const [rpe, setRpe] = useState<number | null>(set.targetRpe ?? null);
 
   return (
-    <motion.div layout initial={false} className="flex flex-col gap-4 rounded-card border border-hairline bg-surface-raised p-5">
+    <motion.div layout={!reduceMotion} initial={false} className="flex flex-col gap-4 rounded-card border border-hairline bg-surface-raised p-5">
       <div>
         <p className="text-sm font-medium text-ink-primary">{set.exerciseName}</p>
         <p className="text-sm text-ink-muted">
@@ -58,7 +59,7 @@ export function SetRow({
 
       {!set.isWarmup ? <RpeSelector value={rpe} onChange={setRpe} /> : null}
 
-      <Button size="lg" disabled={pending} onClick={() => onLog(reps, loadKg, rpe)} className="w-full">
+      <Button size="lg" loading={pending} onClick={() => onLog(reps, loadKg, rpe)} className="w-full">
         Log set
       </Button>
     </motion.div>

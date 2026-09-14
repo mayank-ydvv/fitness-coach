@@ -1,12 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { MailCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { TextInput } from "@/components/ui/TextInput";
 import { GuestButton } from "@/components/auth/GuestButton";
+import { describeAuthError } from "./authErrorCopy";
 
+/**
+ * This app is passwordless by design (magic link + Google + guest) — see
+ * DESIGN.md's Phase 5 note. One email field IS the whole form; there's
+ * no separate signup mode to toggle to, since the same link creates an
+ * account on first use.
+ */
 export function LoginForm({ next }: { next?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -33,7 +41,7 @@ export function LoginForm({ next }: { next?: string }) {
     });
     if (error) {
       setStatus("error");
-      setError(error.message);
+      setError(describeAuthError(error.message));
       return;
     }
     setStatus("sent");
@@ -51,9 +59,25 @@ export function LoginForm({ next }: { next?: string }) {
 
   if (status === "sent") {
     return (
-      <p className="text-sm text-ink-primary">
-        Check {email} for a sign-in link. It expires in an hour — if it doesn&apos;t arrive, check spam or try again.
-      </p>
+      <div className="flex flex-col items-start gap-3">
+        <span className="flex size-11 items-center justify-center rounded-full bg-action/10 text-action">
+          <MailCheck size={22} aria-hidden />
+        </span>
+        <div>
+          <p className="font-medium text-ink-primary">Check {email}</p>
+          <p className="mt-1 text-ink-muted">
+            We sent a sign-in link. It expires in an hour — if it doesn&apos;t arrive, check spam or send
+            another.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStatus("idle")}
+          className="text-sm font-medium text-ink-primary underline-offset-2 hover:underline"
+        >
+          Use a different email
+        </button>
+      </div>
     );
   }
 
@@ -69,12 +93,14 @@ export function LoginForm({ next }: { next?: string }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            aria-invalid={status === "error"}
           />
         </Field>
-        <Button type="submit" disabled={status === "sending"} className="w-full">
-          {status === "sending" ? "Sending link…" : "Send sign-in link"}
+        <Button type="submit" loading={status === "sending"} className="w-full">
+          Send sign-in link
         </Button>
       </form>
+      <p className="text-sm text-ink-muted">New here? The same link creates your account.</p>
       <div className="flex items-center gap-3 text-xs text-ink-muted">
         <div className="h-px flex-1 bg-hairline" />
         or

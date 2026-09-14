@@ -34,7 +34,7 @@ export function DeleteAccount() {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="text-left text-sm text-load-red underline underline-offset-2">
+      <button type="button" onClick={() => setOpen(true)} className="text-left text-sm text-action-danger underline underline-offset-2">
         Delete account
       </button>
       <Sheet open={open} onOpenChange={setOpen} title="Delete your account">

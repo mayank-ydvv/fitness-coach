@@ -57,7 +57,10 @@ export function ItemRow({
 
   return (
     <div className="relative overflow-hidden rounded-control">
-      <div className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-load-red text-ink-primary">
+      {/* action-danger (Ember), not load-red — this is a destructive-action
+          affordance, not an RPE/intensity signal; ink-on-brand, not
+          ink-primary, since it's text on that same solid dark fill. */}
+      <div className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-action-danger text-ink-on-brand">
         <Trash2 size={18} aria-hidden />
       </div>
       <div

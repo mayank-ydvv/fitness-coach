@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Hero } from "@/components/marketing/Hero";
+import { LandingPage } from "@/components/marketing/LandingPage";
 
-export default async function LandingPage() {
+export default async function Page() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -10,5 +10,5 @@ export default async function LandingPage() {
 
   if (user) redirect("/today");
 
-  return <Hero />;
+  return <LandingPage />;
 }

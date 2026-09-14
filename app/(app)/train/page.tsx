@@ -69,19 +69,19 @@ export default async function TrainPage() {
       <h1 className="text-2xl font-semibold text-ink-primary">Train</h1>
 
       <Card>
-        <p className="text-xs font-medium uppercase text-ink-muted">{program.name}</p>
+        <p className="text-sm font-medium text-ink-primary">{program.name}</p>
         <p className="text-sm text-ink-muted">{program.split?.replace(/_/g, " ")}</p>
       </Card>
 
       {nextWorkout ? (
         <Card className="flex flex-col gap-3">
           <div>
-            <p className="text-xs font-medium uppercase text-ink-muted">
+            <p className="text-sm text-ink-muted">
               Week {nextWorkout.weekNumber} of {program.total_weeks}
-              {nextWorkout.isDeload ? " · Deload" : ""}
+              {nextWorkout.isDeload ? " — deload week" : ""}
             </p>
             <p className="text-lg font-medium text-ink-primary">{nextWorkout.name}</p>
-            {nextWorkout.estimatedMinutes ? <p className="text-sm text-ink-muted">~{nextWorkout.estimatedMinutes} min</p> : null}
+            {nextWorkout.estimatedMinutes ? <p className="text-sm text-ink-muted">About {nextWorkout.estimatedMinutes} minutes</p> : null}
           </div>
           <StartSessionButton plannedWorkoutId={nextWorkout.id} />
         </Card>

@@ -28,8 +28,10 @@ export function SegmentedControl<T extends string>({
           className={cn(
             "flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-[calc(var(--radius-control)-4px)] px-2 py-1.5 text-sm",
             // bg-action, not bg-load-blue: same WCAG AA contrast fix as
-            // Button's primary variant — see globals.css.
-            "text-ink-muted data-[state=checked]:bg-action data-[state=checked]:text-ink-primary",
+            // Button's primary variant — see globals.css. Checked text
+            // uses ink-on-brand, not ink-primary, since it sits on that
+            // same dark fill.
+            "text-ink-muted data-[state=checked]:bg-action data-[state=checked]:text-ink-on-brand",
           )}
         >
           <span className="metric text-base leading-none">{opt.label}</span>

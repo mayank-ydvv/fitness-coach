@@ -1,5 +1,6 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { ConfirmSignIn } from "@/components/auth/ConfirmSignIn";
+import { AuthShell } from "@/components/auth/AuthShell";
 
 // Renders a page rather than verifying on GET directly, so verification only
 // ever fires from a real click — see the comment in ConfirmSignIn for why.
@@ -11,18 +12,18 @@ export default async function ConfirmPage({
   const { token_hash: tokenHash, type, next } = await searchParams;
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-surface-base px-5">
-      <div className="w-full max-w-sm text-center">
+    <AuthShell>
+      <div className="text-center">
         <h1 className="mb-1 text-2xl font-semibold text-ink-primary">AI Fitness Coach</h1>
         {tokenHash && type ? (
           <>
-            <p className="mb-6 text-sm text-ink-muted">Confirm it was you before we sign you in.</p>
+            <p className="mb-6 text-ink-muted">Confirm it was you before we sign you in.</p>
             <ConfirmSignIn tokenHash={tokenHash} type={type as EmailOtpType} next={next ?? "/today"} />
           </>
         ) : (
-          <p className="text-sm text-load-red">This sign-in link is missing or malformed. Request a new one from the sign-in page.</p>
+          <p className="text-action-danger">This sign-in link is missing or malformed. Request a new one from the sign-in page.</p>
         )}
       </div>
-    </div>
+    </AuthShell>
   );
 }

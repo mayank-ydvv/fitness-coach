@@ -55,7 +55,7 @@ export function PreferencesPanel({
               onClick={() => save({ unitSystem: u })}
               className={cn(
                 "min-h-9 rounded-[calc(var(--radius-control)-4px)] px-3 text-sm font-medium",
-                unitSystem === u ? "bg-action text-ink-primary" : "text-ink-muted",
+                unitSystem === u ? "bg-action text-ink-on-brand" : "text-ink-muted",
               )}
             >
               {u === "metric" ? "Metric" : "Imperial"}

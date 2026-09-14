@@ -4,7 +4,9 @@ import { GOALS, type Goal } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import type { StepProps } from "./types";
 
-const LABELS: Record<Goal, string> = {
+// Exported for StepReview's editable-summary labels — one source of
+// truth rather than a second copy that can drift.
+export const GOAL_LABELS: Record<Goal, string> = {
   fat_loss: "Lose fat",
   muscle_gain: "Build muscle",
   strength: "Get stronger",
@@ -26,11 +28,11 @@ export function StepGoal({ draft, patch }: StepProps) {
             className={cn(
               "min-h-14 rounded-control border px-4 py-3 text-left text-sm font-medium",
               draft.goal === g
-                ? "border-load-blue bg-load-blue-soft text-ink-primary"
+                ? "border-action bg-action/10 text-ink-primary"
                 : "border-hairline bg-surface-sunken text-ink-muted",
             )}
           >
-            {LABELS[g]}
+            {GOAL_LABELS[g]}
           </button>
         ))}
       </div>

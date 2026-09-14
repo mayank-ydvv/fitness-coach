@@ -27,7 +27,7 @@ export function LeftRail() {
               active && "bg-surface-sunken text-ink-primary",
             )}
           >
-            <Icon size={20} className={cn(active && "text-load-blue")} />
+            <Icon size={20} className={cn(active && "text-action")} />
             {item.label}
           </Link>
         );

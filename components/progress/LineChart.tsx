@@ -9,7 +9,7 @@ export function LineChart({
   points,
   height = 160,
   formatValue,
-  tone = "#3D7FD4", // --color-load-blue
+  tone = "#3D7FD4", // --color-load-blue — chart series is load-*'s scope, not the accent
 }: {
   points: { x: string; y: number }[];
   height?: number;
@@ -49,7 +49,12 @@ export function LineChart({
       {coords.map((c, i) => (
         <circle key={i} cx={c.x} cy={c.y} r={i === coords.length - 1 ? 4 : 2.5} fill={tone} />
       ))}
-      <text x={last.x} y={last.y - 10} textAnchor="end" fontSize={13} fill="#F2F0ED" className="font-medium">
+      {/* fill="currentColor" + text-ink-primary, not a hardcoded hex —
+          this used to be a literal #F2F0ED (the OLD dark-theme
+          ink-primary), which read as invisible near-white text once the
+          re-theme flipped ink-primary to dark. Tracking the token this
+          way means it can never drift out of sync with it again. */}
+      <text x={last.x} y={last.y - 10} textAnchor="end" fontSize={13} fill="currentColor" className="font-medium text-ink-primary">
         {formatValue ? formatValue(last.value) : last.value}
       </text>
     </svg>

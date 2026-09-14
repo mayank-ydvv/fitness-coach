@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/cn";
 import { AutoMarker } from "./AutoMarker";
 
@@ -11,8 +11,16 @@ const TONE_CLASS: Record<string, string> = {
   "load-red": "bg-load-red border-load-red",
 };
 
-/** Motion moment #3: fills from centre, 120ms, on tap. Respects
- * prefers-reduced-motion via the global instant-transition rule. */
+/**
+ * Motion moment #3: fills from centre, 120ms, on tap.
+ *
+ * The old comment here claimed the global instant-transition rule in
+ * globals.css covers this — it doesn't. That rule forces near-zero
+ * durations on CSS transitions/animations only; this scale keyframe is
+ * driven by Motion in JS, which the CSS rule never touches (found while
+ * auditing every Motion usage in the app for the same gap — see
+ * DESIGN.md Phase 8). Explicit `useReducedMotion()` check added.
+ */
 export function HabitDot({
   name,
   emoji,
@@ -28,6 +36,7 @@ export function HabitDot({
   colorToken: string;
   onToggle: () => void;
 }) {
+  const reduceMotion = useReducedMotion();
   return (
     <button
       type="button"
@@ -39,7 +48,7 @@ export function HabitDot({
       <span className={cn("relative flex size-10 items-center justify-center overflow-hidden rounded-full border text-base", done ? TONE_CLASS[colorToken] ?? TONE_CLASS["load-green"] : "border-hairline bg-surface-sunken")}>
         {done ? (
           <motion.span
-            initial={{ scale: 0 }}
+            initial={reduceMotion ? false : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.12, ease: [0.22, 1, 0.36, 1] }}
             className="text-ink-inverse"

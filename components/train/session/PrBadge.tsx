@@ -1,11 +1,13 @@
-import { Trophy } from "lucide-react";
-
-/** <Metric> + a text label — colour (the load-yellow tint) is never the
- * only carrier of "this was a PR", the icon+label always are too. */
+/**
+ * Text alone carries "this was a PR" — no trophy icon (explicitly banned:
+ * "trophy icons for achievements"). Uses the one accent, not the
+ * load-yellow intensity token — a PR is a highlight, not an RPE/
+ * intensity signal, and load-yellow's meaning elsewhere in the app is
+ * "moderate/over-target," which would misread here.
+ */
 export function PrBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-load-yellow-soft px-2.5 py-1 text-xs font-medium text-ink-primary">
-      <Trophy size={14} className="text-load-yellow" aria-hidden />
+    <span className="inline-flex items-center rounded-full bg-action/10 px-2.5 py-1 text-xs font-medium text-action">
       Personal record
     </span>
   );

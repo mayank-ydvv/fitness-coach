@@ -20,7 +20,7 @@ export function RecentMeals({ meals }: { meals: Meal[] }) {
 
   return (
     <Card className="flex flex-col gap-3">
-      <p className="text-xs font-medium uppercase text-ink-muted">Today&apos;s meals</p>
+      <p className="text-sm font-medium text-ink-primary">Today&apos;s meals</p>
       {meals.map((m) => (
         <div key={m.id} className="flex items-center justify-between">
           <span className="text-sm text-ink-primary">{m.name}</span>

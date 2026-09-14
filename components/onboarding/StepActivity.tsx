@@ -4,7 +4,7 @@ import { ACTIVITY_LEVELS, type ActivityLevel } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import type { StepProps } from "./types";
 
-const LABELS: Record<ActivityLevel, string> = {
+export const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   sedentary: "Sedentary — desk job, little walking",
   light: "Light — some walking or light activity",
   moderate: "Moderate — on your feet most of the day",
@@ -26,11 +26,11 @@ export function StepActivity({ draft, patch }: StepProps) {
             className={cn(
               "min-h-14 rounded-control border px-4 py-3 text-left text-sm font-medium",
               draft.activityLevel === level
-                ? "border-load-blue bg-load-blue-soft text-ink-primary"
+                ? "border-action bg-action/10 text-ink-primary"
                 : "border-hairline bg-surface-sunken text-ink-muted",
             )}
           >
-            {LABELS[level]}
+            {ACTIVITY_LABELS[level]}
           </button>
         ))}
       </div>

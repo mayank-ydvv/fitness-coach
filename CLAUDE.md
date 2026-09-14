@@ -96,6 +96,55 @@ signs out first (cleaning up the guest row) rather than linking straight to
 anonymous session would silently orphan that anonymous user instead of
 cleaning it up.
 
+## Design system: re-themed from dark to light (healthifyme.com reference)
+
+The original build plan specifies a dark matte-graphite palette (spec §3:
+`--surface-base #16181A`, `--ink-primary #F2F0ED`, `color-scheme: dark`).
+That was deliberately overridden later: the user asked for the whole app's
+look to match healthifyme.com's landing page — warm cream surfaces, white
+cards, a deep forest-green brand color, pill-shaped controls — not just the
+public landing page. `app/globals.css`'s `@theme` block now reads:
+
+- `--color-surface-base #F7F2E7` (cream), `--color-surface-raised #FFFFFF`
+  (white cards — now the *lightest* layer, inverted from the old dark
+  scheme where raised was lighter-than-base but still dark),
+  `--color-surface-sunken #EDE6D6` (recessed wells/inputs, now darker than
+  base instead of lighter), `color-scheme: light`.
+- `--color-ink-primary #1C1F1A`, `--color-ink-muted #63685C` (this exact
+  value, not a rounder-looking one, because the first attempt at a muted
+  gray — `#6E7268` — only cleared 4.4:1 against the cream background;
+  `npm run test:a11y`'s axe gate caught it. Don't re-derive this color by
+  eye without re-running that gate).
+- `--color-action #1F5D46` (deep forest green, replacing the old blue
+  `#3568B0`).
+- **New token `--color-ink-on-brand: #FFFFFF`**, split out from
+  `--color-ink-inverse`. Both are "text for a colored fill," but they now
+  serve opposite ends of the lightness scale: `ink-on-brand` is for the
+  dark `--color-action`/`--color-action-danger` fills (Button
+  primary/danger, SegmentedControl's checked state, SkipLink), while
+  `ink-inverse` stays for the mid-tone `--color-load-*` fills (HabitDot).
+  Reusing one token for both broke contrast on one side or the other —
+  don't collapse them back into one.
+- `--radius-card`/`--radius-control` bumped to 20px/14px (from 14px/10px),
+  and `<Button>` uses `rounded-full` (a true pill) instead of
+  `rounded-control` specifically, matching the reference's CTA shape.
+
+The `--color-load-*` intensity scale (green/yellow/blue/red for RPE/
+intensity/form-fault severity) is **unchanged** — those hex values were
+already chosen to be meaningful independent of the surrounding theme, and
+this restyle didn't touch them. `BottomNav`/`LeftRail`'s active-nav-item
+color moved from `text-load-blue` to `text-action`: that was already a
+minor misuse of the load scale for a non-intensity purpose, and green now
+reads as the brand color anyway.
+
+If you touch `e2e/axe.spec.ts`: the landing page's hero has a staged
+Motion entrance (`components/marketing/Hero.tsx`), and axe scanning
+mid-fade produces a false-positive contrast violation (an element still at
+`opacity: 0`). The test emulates `prefers-reduced-motion: reduce` before
+`page.goto()` for exactly this reason — Hero already honors that media
+query via `useReducedMotion()`, so this exercises the real settled state.
+Don't remove that emulation to "simplify" the test.
+
 ## Conventions (see the plan for the reasoning behind each)
 
 - Three Supabase clients: `lib/supabase/{client,server,admin}.ts`. Admin

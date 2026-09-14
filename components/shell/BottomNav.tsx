@@ -24,7 +24,7 @@ export function BottomNav() {
                 aria-current={active ? "page" : undefined}
                 className="flex min-h-11 flex-col items-center justify-center gap-1 py-2 text-ink-muted aria-[current=page]:text-ink-primary"
               >
-                <Icon size={22} className={cn(active && "text-load-blue")} />
+                <Icon size={22} className={cn(active && "text-action")} />
                 <span className="text-xs font-medium">{item.label}</span>
               </Link>
             </li>

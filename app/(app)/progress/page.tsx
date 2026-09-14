@@ -10,6 +10,7 @@ import { WeightTrend } from "@/components/progress/WeightTrend";
 import { E1rmTrend } from "@/components/progress/E1rmTrend";
 import { VolumeBars } from "@/components/progress/VolumeBars";
 import { HabitCompletion } from "@/components/progress/HabitCompletion";
+import { HeadlineMetricPicker } from "@/components/progress/HeadlineMetricPicker";
 import { ProteinAverage } from "@/components/progress/ProteinAverage";
 import { PlateauCard } from "@/components/progress/PlateauCard";
 import { CorrelationCard } from "@/components/progress/CorrelationCard";
@@ -32,11 +33,14 @@ export default async function ProgressPage() {
   const today = todayLocal(timezone);
   const twelveWeeksAgo = addDaysLocal(today, -84);
 
+  // Unbounded (not capped to twelveWeeksAgo like the training/nutrition
+  // queries below) — WeightTrend's own "All" range option needs actual
+  // full history, not a pre-filtered 12 weeks. Weight rows are small and
+  // low-volume per user; this is cheap.
   const { data: bodyMetrics } = await supabase
     .from("body_metrics")
     .select("recorded_on, weight_kg")
     .eq("user_id", user.id)
-    .gte("recorded_on", twelveWeeksAgo)
     .order("recorded_on");
 
   const { data: sessions } = await supabase.from("workout_sessions").select("id").eq("user_id", user.id);
@@ -182,21 +186,57 @@ export default async function ProgressPage() {
     );
   }
 
+  // "A user seven days in has almost no data" (brief §12) — distinct
+  // from true zero above: some real signal exists, but not enough for
+  // any chart here to read as a trend rather than 1-2 dots. Shown as an
+  // honest note above the (still-real, still-rendered) charts, not a
+  // separate page — nothing here invents progress that doesn't exist.
+  const signalCount = (bodyMetrics ?? []).length + (setLogs ?? []).length + (meals ?? []).length;
+  const isSparse = signalCount > 0 && signalCount < 10;
+  const sessionsLogged = sessions?.length ?? 0;
+  const weeksWithAnyHabitDone = new Set((habitLogs ?? []).filter((l) => l.status === "done").map((l) => weekStartLocal(l.log_date))).size;
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold text-ink-primary">Progress</h1>
 
-      <WeightTrend bodyMetrics={bodyMetrics ?? []} measure={measure} />
-
-      {exerciseRows && exerciseRows.length > 0 ? (
-        <E1rmTrend setLogs={setLogs ?? []} exercises={exerciseRows.map((e) => ({ id: e.id, name: e.name }))} />
+      {isSparse ? (
+        <Card>
+          <p className="text-sm text-ink-primary">Still gathering data — trends get clearer after a couple of weeks of logging.</p>
+        </Card>
       ) : null}
 
-      <VolumeBars report={volumeReport} band={band} />
+      {sessionsLogged > 0 || weeksWithAnyHabitDone > 0 ? (
+        <Card className="flex gap-6">
+          {sessionsLogged > 0 ? (
+            <div>
+              <p className="metric text-2xl text-ink-primary">{sessionsLogged}</p>
+              <p className="text-xs text-ink-muted">Sessions logged</p>
+            </div>
+          ) : null}
+          {weeksWithAnyHabitDone > 0 ? (
+            <div>
+              <p className="metric text-2xl text-ink-primary">{weeksWithAnyHabitDone}</p>
+              <p className="text-xs text-ink-muted">Weeks with a habit done</p>
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
+
+      <HeadlineMetricPicker
+        weight={<WeightTrend bodyMetrics={bodyMetrics ?? []} unitSystem={measure.unitSystem} />}
+        strength={
+          <div className="flex flex-col gap-4">
+            {exerciseRows && exerciseRows.length > 0 ? (
+              <E1rmTrend setLogs={setLogs ?? []} exercises={exerciseRows.map((e) => ({ id: e.id, name: e.name }))} />
+            ) : null}
+            <VolumeBars report={volumeReport} band={band} />
+          </div>
+        }
+        habits={<HabitCompletion habits={habitCompletion} />}
+      />
 
       <ProteinAverage averageG={proteinAvg} targetG={targetsRow?.protein_g ?? null} measure={measure} />
-
-      <HabitCompletion habits={habitCompletion} />
 
       {plateaus.map((p) => (
         <PlateauCard key={p.exerciseName} exerciseName={p.exerciseName} signal={p.signal} />

@@ -36,3 +36,26 @@ export type StepProps = {
   draft: OnboardingDraft;
   patch: (partial: Partial<OnboardingDraft>) => void;
 };
+
+// One question per screen (brief §7) — StepSchedule and StepBody used to
+// each cram several questions onto one screen; split here so every entry
+// is a single question. Shared between OnboardingFlow (drives the
+// sequence) and StepReview (jumps back into it), so there's one source
+// of truth for step order and no circular import between the two.
+export const STEPS = [
+  "goal",
+  "experience",
+  "daysPerWeek",
+  "sessionMinutes",
+  "equipment",
+  "limitations",
+  "activity",
+  "sex",
+  "dateOfBirth",
+  "height",
+  "weight",
+  "name",
+  "review",
+] as const;
+
+export type StepKey = (typeof STEPS)[number];

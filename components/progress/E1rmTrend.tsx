@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/Card";
+import { ChartShell } from "@/components/ui/ChartShell";
 import { LineChart } from "./LineChart";
 import { e1rmTrend } from "@/lib/progress/series";
 import { useMeasure } from "@/components/prefs/PreferencesProvider";
@@ -11,17 +11,24 @@ type SetLogRow = Pick<Tables<"set_logs">, "completed_at" | "e1rm" | "e1rm_truste
 type ExerciseOption = { id: string; name: string };
 
 /** Per-exercise selector + line — the one genuinely client-interactive
- * progress chart (the others are static per-render). */
+ * progress chart (the others are static per-render). Doubles as the
+ * "personal bests over time" the brief asks for under Progress. */
 export function E1rmTrend({ setLogs, exercises }: { setLogs: SetLogRow[]; exercises: ExerciseOption[] }) {
   const measure = useMeasure();
   const [selected, setSelected] = useState(exercises[0]?.id ?? "");
+  const selectedName = exercises.find((e) => e.id === selected)?.name ?? "";
 
   const points = e1rmTrend(setLogs.filter((l) => l.exercise_id === selected));
+  const summary =
+    points.length >= 2
+      ? `Estimated 1-rep max for ${selectedName} from ${measure.mass(points[0].e1rm)} to ${measure.mass(points[points.length - 1].e1rm)}`
+      : `Not enough logged sets yet for ${selectedName || "this exercise"}'s trend`;
 
   return (
-    <Card>
-      <div className="mb-2 flex items-center justify-between">
-        <p className="text-sm font-medium text-ink-primary">Estimated 1RM</p>
+    <ChartShell
+      title="Estimated 1RM"
+      summary={summary}
+      rangeControl={
         <select
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
@@ -33,8 +40,9 @@ export function E1rmTrend({ setLogs, exercises }: { setLogs: SetLogRow[]; exerci
             </option>
           ))}
         </select>
-      </div>
+      }
+    >
       <LineChart points={points.map((p) => ({ x: p.date, y: p.e1rm }))} formatValue={(v) => measure.mass(v) ?? ""} tone="#4A9E5C" />
-    </Card>
+    </ChartShell>
   );
 }

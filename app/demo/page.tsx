@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Metric } from "@/components/ui/Metric";
-import { ProgressRing } from "@/components/ui/ProgressRing";
+import { EnergyRing } from "@/components/today/EnergyRing";
 import { MacroBars } from "@/components/today/MacroBars";
 import { NextSessionCard } from "@/components/today/NextSessionCard";
 import { RecentMeals } from "@/components/today/RecentMeals";
@@ -50,14 +50,7 @@ export default function DemoPage() {
         <div className="flex flex-col gap-5">
           <p className="text-sm text-ink-muted">{DEMO_TODAY.dateLabel}</p>
 
-          <div className="flex flex-col items-center gap-2 py-4">
-            <ProgressRing fraction={Math.min(fraction, 1)} tone={fraction > 1 ? "load-yellow" : "load-blue"} size={180} strokeWidth={12}>
-              <div className="flex flex-col items-center">
-                <Metric value={String(kcalTarget - kcalConsumed)} size="hero" />
-                <span className="text-sm text-ink-muted">kcal left of {kcalTarget}</span>
-              </div>
-            </ProgressRing>
-          </div>
+          <EnergyRing remainingLabel={String(kcalTarget - kcalConsumed)} targetLabel={String(kcalTarget)} fraction={fraction} />
 
           <NextSessionCard session={DEMO_TODAY.nextSession} />
 
@@ -82,7 +75,7 @@ export default function DemoPage() {
 
           <h2 className="mt-4 text-lg font-medium text-ink-primary">4 weeks of progress</h2>
 
-          <WeightTrend bodyMetrics={DEMO_WEIGHT_TREND.map((p) => ({ recorded_on: p.date, weight_kg: p.weightKg }))} measure={measure} />
+          <WeightTrend bodyMetrics={DEMO_WEIGHT_TREND.map((p) => ({ recorded_on: p.date, weight_kg: p.weightKg }))} unitSystem={measure.unitSystem} />
           <VolumeBars report={volumeReport} band={DEMO_VOLUME.band} />
           <HabitCompletion habits={DEMO_HABIT_COMPLETION} />
 

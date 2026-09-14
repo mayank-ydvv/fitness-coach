@@ -16,6 +16,13 @@ const PUBLIC_ROUTES = ["/", "/login", "/demo"];
 
 for (const route of PUBLIC_ROUTES) {
   test(`${route} has no serious or critical axe violations`, async ({ page }) => {
+    // The landing page's hero has a staged entrance animation
+    // (components/marketing/Hero.tsx) — without this, axe can scan mid-fade
+    // (an element still at opacity:0) and report a false-positive contrast
+    // violation. Hero already honors prefers-reduced-motion via
+    // useReducedMotion(), so emulating it here exercises the real settled
+    // state, the same one a reduced-motion user always sees.
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(route);
     const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();
 

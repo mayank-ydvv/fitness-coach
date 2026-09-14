@@ -27,8 +27,8 @@ export function StartSessionButton({ plannedWorkoutId }: { plannedWorkoutId: str
   }
 
   return (
-    <Button size="lg" onClick={start} disabled={starting} className="w-full">
-      {starting ? "Starting…" : "Start session"}
+    <Button size="lg" onClick={start} loading={starting} className="w-full">
+      Start session
     </Button>
   );
 }

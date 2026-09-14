@@ -57,7 +57,7 @@ export function GuestButton({
       >
         {status === "loading" ? "Starting…" : children}
       </button>
-      {status === "error" ? <p className="text-xs text-load-red">{error}</p> : null}
+      {status === "error" ? <p className="text-xs text-action-danger">{error}</p> : null}
     </div>
   );
 }

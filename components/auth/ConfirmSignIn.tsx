@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CircleCheck } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
@@ -14,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 // means only a real user click can trigger verifyOtp.
 export function ConfirmSignIn({ tokenHash, type, next }: { tokenHash: string; type: EmailOtpType; next: string }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "verifying" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "verifying" | "success" | "error">("idle");
 
   async function verify() {
     const supabase = createClient();
@@ -28,13 +29,17 @@ export function ConfirmSignIn({ tokenHash, type, next }: { tokenHash: string; ty
       setStatus("error");
       return;
     }
-    router.replace(next);
+    // A real designed state, not padding: without it, verifying jumps
+    // straight to a blank navigation with no confirmation the click
+    // worked at all.
+    setStatus("success");
+    setTimeout(() => router.replace(next), 500);
   }
 
   if (status === "error") {
     return (
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-load-red">
+        <p className="text-sm text-action-danger">
           That link has expired or was already used. Request a new one from the sign-in page.
         </p>
         <Button type="button" onClick={() => router.replace("/login")} className="w-full">
@@ -44,9 +49,18 @@ export function ConfirmSignIn({ tokenHash, type, next }: { tokenHash: string; ty
     );
   }
 
+  if (status === "success") {
+    return (
+      <div className="flex flex-col items-center gap-2 text-action">
+        <CircleCheck size={28} aria-hidden />
+        <p className="font-medium text-ink-primary">You&apos;re in — taking you there now.</p>
+      </div>
+    );
+  }
+
   return (
-    <Button type="button" onClick={verify} disabled={status === "verifying"} className="w-full">
-      {status === "verifying" ? "Verifying…" : "Verify and sign in"}
+    <Button type="button" onClick={verify} loading={status === "verifying"} className="w-full">
+      Verify and sign in
     </Button>
   );
 }

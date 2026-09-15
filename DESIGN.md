@@ -1407,3 +1407,42 @@ sizes off the same photo ID) and re-cropped at that resolution with
 more headroom above the towel, so the final file (1350×1800,
 ~510KB) has real detail at the sizes the panel actually renders at
 and reads as a photo with breathing room, not a texture swatch.
+
+## §32 Delete a logged meal, from the Eat list itself (2026-09-15)
+
+User asked, from a screenshot of Eat with a Snack and a Breakfast
+logged: give me an option to delete and edit what I've filled in
+here. Editing already existed — tapping a `MealCard` opens
+`CorrectionSheet`, which already has per-item portion/gram editing,
+swipe-to-delete per item, and the backend (`/api/nutrition/meals/
+[id]` PATCH+DELETE) already supported deleting the whole meal too —
+there was just no UI wired to it. Missing piece was deleting an
+entire logged meal in one action from the list the user is actually
+looking at, without having to delete every item inside it one at a
+time.
+
+Deliberately not swipe-to-delete on `MealCard` the way `ItemRow` does
+for a single food item: swiping away a whole meal risks losing 4+
+items at once from one accidental gesture, and a swipe has no
+keyboard/screen-reader equivalent. Used a real `Trash2` icon-button
+instead (`window.confirm` gate, matching the existing `window.prompt`
+pattern `handleSaveFavorite` already uses for naming a favorite),
+placed next to the kcal metric on every status branch (processing/
+failed/ready/manual) so it's not missing whenever a meal is stuck
+mid-analysis. This forced restructuring the ready-state row, which
+used to be one giant `<button>` covering the whole card (tap-anywhere
+to open the sheet) — split into a label button (still opens
+`CorrectionSheet`, now says "tap to edit" so the affordance is
+explicit) plus a separate trailing icon-button, avoiding a button
+nested inside a button.
+
+`EatPageClient.deleteMeal` follows the same optimistic-mutation
+policy as the rest of the app: removes the meal from the `qk.meals`
+cache immediately, calls `DELETE`, and puts it back with a toast on
+failure rather than leaving the UI silently wrong. Verified live as a
+guest: seeded a Snack + Breakfast via SQL to match the user's exact
+screenshot, deleted the Snack (had to stub `window.confirm` since the
+browser tool can't drive the native dialog), confirmed the row is
+actually gone from the `meals` table and the kcal total updates
+immediately. Checked at 360px — no overflow. `npx tsc --noEmit` and
+`npm run lint` clean.

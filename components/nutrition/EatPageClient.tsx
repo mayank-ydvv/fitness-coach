@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { Metric } from "@/components/ui/Metric";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useMeasure } from "@/components/prefs/PreferencesProvider";
+import { useToast } from "@/components/ui/Toast";
 import { qk } from "@/lib/queries/keys";
 import { computeDailyRollup } from "@/lib/nutrition/rollup";
 import type { Tables } from "@/lib/supabase/database.types";
@@ -26,6 +27,7 @@ export function EatPageClient({
 }) {
   const measure = useMeasure();
   const queryClient = useQueryClient();
+  const { push } = useToast();
   const { logMealPhoto } = useLogMeal(date, userId);
 
   const { data: meals } = useQuery({
@@ -55,6 +57,21 @@ export function EatPageClient({
       items: m.meal_items.map((i) => ({ kcal: i.kcal, proteinG: i.protein_g, carbsG: i.carbs_g, fatG: i.fat_g })),
     })),
   );
+
+  // Optimistic removal (matching the rest of the app's mutation policy) —
+  // the whole point is a tap here reads as instant, not "wait for the
+  // network." On failure the meal is put back rather than silently
+  // staying deleted, and the user is told to retry.
+  async function deleteMeal(mealId: string) {
+    const previous = queryClient.getQueryData<Meal[]>(qk.meals(date));
+    queryClient.setQueryData<Meal[]>(qk.meals(date), (prev) => (prev ?? []).filter((m) => m.id !== mealId));
+
+    const res = await fetch(`/api/nutrition/meals/${mealId}`, { method: "DELETE" });
+    if (!res.ok) {
+      queryClient.setQueryData(qk.meals(date), previous);
+      push("Couldn't delete that meal — try again.", "danger");
+    }
+  }
 
   function retryFor(mealId: string) {
     // A failed meal already has its photo in Storage — re-run analysis
@@ -87,7 +104,7 @@ export function EatPageClient({
       ) : (
         <div className="flex flex-col gap-3">
           {(meals ?? []).map((meal) => (
-            <MealCard key={meal.id} meal={meal} onRetry={retryFor} />
+            <MealCard key={meal.id} meal={meal} onRetry={retryFor} onDelete={deleteMeal} />
           ))}
         </div>
       )}

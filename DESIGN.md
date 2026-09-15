@@ -1363,3 +1363,31 @@ colour — the same soft-accent-circle language as `IconBadge`, so the
 nav feels like part of the same system rather than a plain colour
 swap. Verified as a real guest session across Today/Train/Progress;
 `npx tsc --noEmit` and `npm run lint` clean.
+
+## §30 AuthVisual gets a real photo (2026-09-15)
+
+The login/confirm split-screen visual (`AuthVisual.tsx`) was a
+hand-drawn weight-trend SVG line. User didn't like it and asked for
+something else — first shown 4 options reusing the landing page's
+existing feature mockups (week schedule, habit dots, session log,
+meal macros), all rejected as "already used on the landing page."
+Re-proposed 4 genuinely new directions (a real photo, a one-line
+illustration, a counting stat, a pulse line); user picked the photo
+route, same process as Hero's background — 3 candidates sourced and
+shown for a real approval, not just described.
+
+The candidate picked (a folded gym towel by a treadmill, styled
+minimal/grey) turned out, on closer look at the full downloaded file,
+to have a water bottle in frame with a visible "true fruits" brand
+label running down the glass in legible text — missed in the
+search tool's own description of the photo, only caught by actually
+opening the file. Flagged it rather than shipping it. Cropped the
+original frame tight to just the towel (`public/images/auth-bg.jpg`
+is the pre-cropped file, not the original composition) rather than
+re-sourcing from scratch, since the towel-only crop was still exactly
+the calm/minimal mood that made this candidate the pick in the first
+place. Same diagonal-scrim-for-legibility treatment as Hero;
+`h-56 md:h-full` so it reads as a proper photo strip on mobile
+instead of an arbitrary content-height sliver. Verified at desktop
+split-screen width, mobile stacked width, and 360px with no
+horizontal scroll; `npx tsc --noEmit` and `npm run lint` clean.

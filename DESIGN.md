@@ -1391,3 +1391,19 @@ place. Same diagonal-scrim-for-legibility treatment as Hero;
 instead of an arbitrary content-height sliver. Verified at desktop
 split-screen width, mobile stacked width, and 360px with no
 horizontal scroll; `npx tsc --noEmit` and `npm run lint` clean.
+
+First crop shipped looked wrong on a real wide desktop window —
+reported with a screenshot showing a blurry, overly-zoomed towel
+texture with almost no negative space. Two compounding mistakes: (1)
+the crop had been taken from a small 2200px-wide download, so the
+already-narrow towel-only slice was only ~850px wide — far too little
+resolution for a panel that's often 1000-1600 CSS px wide (2000-3200
+device px at 2x), so the browser was upscaling and blurring it; (2)
+the crop framing itself was too tight, cutting in right at the
+towel's top edge with almost no sky/negative space above it, which
+is what actually read as "weird" rather than calm. Fixed both:
+re-downloaded the same photo at 5000px wide (Unsplash serves larger
+sizes off the same photo ID) and re-cropped at that resolution with
+more headroom above the towel, so the final file (1350×1800,
+~510KB) has real detail at the sizes the panel actually renders at
+and reads as a photo with breathing room, not a texture swatch.

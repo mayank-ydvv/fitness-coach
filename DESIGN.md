@@ -1505,3 +1505,39 @@ with the sheet still closing — no reload needed. Checked the Qty row
 at 360px (wraps to two lines under the gram input, no overflow).
 `npx tsc --noEmit`, `npm run lint`, and `npm run check` (27/27 across
 progression/streaks/form) all clean.
+
+## §34 Quantity belongs to the meal, not each ingredient (2026-09-15)
+
+§33's Qty stepper shipped per ingredient — reasonable for a single-
+item log, wrong the moment the AI splits a photo into several rows.
+Reported against exactly that case: a sandwich came back as three
+separate items (bread, egg salad filling, butter/spread), each with
+its own Qty control, and the user had no way to answer "how many of
+the *butter*" — they don't know how much butter or onion was in
+there, they know they ate one sandwich (or two).
+
+Moved the control up a level. `ItemRow`/`PortionControl` are back to
+grams-only per ingredient (correcting a single ingredient's own
+weight is still useful — the AI misjudging egg salad grams, say — just
+not "how many"). `CorrectionSheet` now owns one "How many did you
+eat?" `Stepper`, above the ingredient list, that scales every
+ingredient together off a baseline captured once when the sheet first
+mounts (the AI's original per-ingredient breakdown). Two edge cases
+that had to hold: a manually-added item (no baseline) is left alone
+by the meal-level stepper rather than erroring or getting scaled from
+nothing; a deleted ingredient stays deleted on a later quantity change
+because the scaling maps over the *current* row set, not the
+baseline set, so there's nothing to resurrect it from.
+
+No batch PATCH endpoint exists, so a quantity change fires one PATCH
+per affected ingredient (a real meal is a handful of items, not
+hundreds) — each one already idempotent and independently retried the
+same way a single-item edit is.
+
+Verified live as a guest: seeded a 3-item sandwich meal (bread/egg
+salad/spread) matching the reported screenshot, confirmed the
+per-item Qty controls are gone and only grams inputs remain, bumped
+the meal-level stepper to 2 and confirmed all three ingredients
+doubled together in the same render (55→110, 270→540, 190→380 kcal,
+1030 total) and persisted correctly in the database. `npx tsc
+--noEmit`, `npm run lint`, and `npm run check` (27/27) clean.

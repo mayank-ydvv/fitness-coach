@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { Sheet } from "@/components/ui/Sheet";
 import { Metric } from "@/components/ui/Metric";
 import { Button } from "@/components/ui/Button";
+import { Stepper } from "@/components/ui/Stepper";
 import { useToast } from "@/components/ui/Toast";
 import { useMeasure } from "@/components/prefs/PreferencesProvider";
 import { ItemRow, type CorrectionItem } from "./ItemRow";
 import { ManualItemRow } from "./ManualItemRow";
 import { ManualEntryForm, type ManualItemDraft } from "./ManualEntryForm";
+import { rescaleItemToGrams } from "@/lib/nutrition/rescale";
 import type { Tables } from "@/lib/supabase/database.types";
 
 type MealItemRow = Tables<"meal_items">;
@@ -72,6 +74,16 @@ export function CorrectionSheet({
   const { push } = useToast();
   const [rows, setRows] = useState<MealItemRow[]>(initialItems);
   const [addingManual, setAddingManual] = useState(false);
+  const [mealQuantity, setMealQuantity] = useState(1);
+
+  // Captured once, on first mount — the AI's original "1 sandwich"
+  // breakdown across every ingredient. The meal-level Qty stepper below
+  // always scales from this fixed set, per ingredient, rather than a
+  // per-ingredient control: nobody logging a photo of a sandwich can
+  // say how many grams of onion or butter were actually inside it, but
+  // "I ate 2 of these" is answerable, and it should move bread, filling,
+  // and spread together as one unit.
+  const [baselineRows] = useState(initialItems);
 
   useEffect(() => {
     setRows(initialItems);
@@ -111,6 +123,44 @@ export function CorrectionSheet({
       }),
     });
     if (!res.ok) push("Couldn't save that change — try again.", "danger");
+  }
+
+  // Scales every ingredient that still exists (a deleted item stays
+  // deleted, not resurrected) and still has a baseline gram estimate to
+  // scale from — a manually-added item has no baseline and is left
+  // exactly as entered. PATCHes each changed ingredient individually;
+  // there's no batch endpoint and a real meal is a handful of items.
+  function handleMealQuantity(next: number) {
+    setMealQuantity(next);
+    const newRows = rows.map((row) => {
+      const baseline = baselineRows.find((b) => b.id === row.id);
+      if (!baseline?.grams) return row;
+      const scaled = rescaleItemToGrams(toCorrectionItem(baseline), Math.round(baseline.grams * next));
+      return toRow(baseline, scaled);
+    });
+    commit(newRows);
+
+    for (const row of newRows) {
+      const baseline = baselineRows.find((b) => b.id === row.id);
+      if (!baseline?.grams) continue;
+      fetch(`/api/nutrition/meals/${mealId}/items`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: row.id,
+          grams: row.grams,
+          kcal: row.kcal,
+          kcalLow: row.kcal_low,
+          kcalHigh: row.kcal_high,
+          proteinG: row.protein_g,
+          carbsG: row.carbs_g,
+          fatG: row.fat_g,
+          fiberG: row.fiber_g,
+        }),
+      }).then((res) => {
+        if (!res.ok) push("Couldn't save that change — try again.", "danger");
+      });
+    }
   }
 
   async function handleDelete(itemId: string) {
@@ -174,6 +224,11 @@ export function CorrectionSheet({
           <Button variant="secondary" size="md" onClick={handleSaveFavorite}>
             Save as favorite
           </Button>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-control border border-hairline bg-surface-sunken px-3 py-2.5">
+          <span className="text-sm text-ink-primary">How many did you eat?</span>
+          <Stepper value={mealQuantity} onChange={handleMealQuantity} min={1} step={1} size="md" className="gap-1.5" />
         </div>
 
         <div className="flex flex-col gap-2">

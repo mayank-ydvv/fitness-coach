@@ -35,20 +35,8 @@ export function ItemRow({
   const [dragX, setDragX] = useState(0);
   const dragging = useRef<{ startX: number } | null>(null);
 
-  // The item exactly as it arrived (the AI's "1 sandwich" estimate, or a
-  // previous save) — quantity always scales from this fixed point, never
-  // from whatever the current grams happen to be, so tapping +/- repeatedly
-  // can't compound rounding drift the way a live multiplier would.
-  const [baseline] = useState(item);
-  const [quantity, setQuantity] = useState(1);
-
   const { tone, label } = confidenceTone(item.confidence);
   const hasRange = item.kcalLow !== null && item.kcalHigh !== null;
-
-  function handleQuantity(next: number) {
-    setQuantity(next);
-    if (baseline.grams) onChange(rescaleItemToGrams(baseline, Math.round(baseline.grams * next)));
-  }
 
   function onPointerDown(e: React.PointerEvent) {
     dragging.current = { startX: e.clientX };
@@ -97,12 +85,7 @@ export function ItemRow({
             ) : null}
           </div>
         </div>
-        <PortionControl
-          grams={item.grams}
-          quantity={baseline.grams ? quantity : null}
-          onQuantity={handleQuantity}
-          onGrams={(g) => onChange(rescaleItemToGrams(item, g))}
-        />
+        <PortionControl grams={item.grams} onGrams={(g) => onChange(rescaleItemToGrams(item, g))} />
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-ink-muted">
           <span>{item.proteinG}g protein</span>
           <span>{item.carbsG}g carbs</span>

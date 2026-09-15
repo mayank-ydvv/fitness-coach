@@ -5,7 +5,7 @@ import { Trash2 } from "lucide-react";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { Metric } from "@/components/ui/Metric";
 import { PortionControl } from "./PortionControl";
-import { rescaleItemByMultiplier, rescaleItemToGrams, type RescalableItem } from "@/lib/nutrition/rescale";
+import { rescaleItemToGrams, type RescalableItem } from "@/lib/nutrition/rescale";
 
 export type CorrectionItem = RescalableItem & {
   id: string;
@@ -35,8 +35,20 @@ export function ItemRow({
   const [dragX, setDragX] = useState(0);
   const dragging = useRef<{ startX: number } | null>(null);
 
+  // The item exactly as it arrived (the AI's "1 sandwich" estimate, or a
+  // previous save) — quantity always scales from this fixed point, never
+  // from whatever the current grams happen to be, so tapping +/- repeatedly
+  // can't compound rounding drift the way a live multiplier would.
+  const [baseline] = useState(item);
+  const [quantity, setQuantity] = useState(1);
+
   const { tone, label } = confidenceTone(item.confidence);
   const hasRange = item.kcalLow !== null && item.kcalHigh !== null;
+
+  function handleQuantity(next: number) {
+    setQuantity(next);
+    if (baseline.grams) onChange(rescaleItemToGrams(baseline, Math.round(baseline.grams * next)));
+  }
 
   function onPointerDown(e: React.PointerEvent) {
     dragging.current = { startX: e.clientX };
@@ -87,7 +99,8 @@ export function ItemRow({
         </div>
         <PortionControl
           grams={item.grams}
-          onMultiplier={(m) => onChange(rescaleItemByMultiplier(item, m))}
+          quantity={baseline.grams ? quantity : null}
+          onQuantity={handleQuantity}
           onGrams={(g) => onChange(rescaleItemToGrams(item, g))}
         />
         <div className="grid grid-cols-3 gap-2 text-center text-xs text-ink-muted">

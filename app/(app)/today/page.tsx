@@ -79,7 +79,7 @@ export default async function TodayPage() {
   const [{ data: meals }, insight] = await Promise.all([
     supabase
       .from("meals")
-      .select("id, meal_type, status, eaten_at, meal_items(kcal, protein_g, carbs_g, fat_g)")
+      .select("id, meal_type, status, eaten_at, meal_items(name, kcal, protein_g, carbs_g, fat_g)")
       .eq("user_id", user.id)
       .gte("eaten_at", dayStart)
       .lt("eaten_at", dayEnd)
@@ -160,7 +160,8 @@ export default async function TodayPage() {
       <RecentMeals
         meals={(meals ?? []).map((m) => {
           const kcal = (m.meal_items ?? []).reduce((s, i) => s + (i.kcal ?? 0), 0);
-          return { id: m.id, name: m.meal_type ?? "Meal", kcalLabel: measure.energy(kcal) };
+          const name = (m.meal_items ?? []).map((i) => i.name).join(", ") || "Meal";
+          return { id: m.id, name, kcalLabel: measure.energy(kcal) };
         })}
       />
     </div>

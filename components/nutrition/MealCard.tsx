@@ -24,19 +24,25 @@ export function MealCard({
   meal,
   onRetry,
   onDelete,
+  onItemsChange,
 }: {
   meal: Meal;
   onRetry: (mealId: string) => void;
   onDelete: (mealId: string) => void;
+  onItemsChange: (mealId: string, items: Tables<"meal_items">[]) => void;
 }) {
   const measure = useMeasure();
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const kcal = meal.meal_items.reduce((s, i) => s + i.kcal, 0);
-  const label = meal.meal_type ? meal.meal_type[0].toUpperCase() + meal.meal_type.slice(1) : "Meal";
+  // The food itself ("Grilled chicken sandwich"), not the breakfast/
+  // lunch/dinner/snack guess — that classification is still stored
+  // (meal_type) and used server-side, it's just not what the user
+  // wants to see as the card's own title.
+  const title = meal.meal_items.length > 0 ? meal.meal_items.map((i) => i.name).join(", ") : "Meal";
 
   function confirmDelete() {
-    if (window.confirm(`Delete this ${label.toLowerCase()}? This can't be undone.`)) onDelete(meal.id);
+    if (window.confirm("Delete this meal? This can't be undone.")) onDelete(meal.id);
   }
 
   return (
@@ -89,7 +95,7 @@ export function MealCard({
             ) : (
               <div className="flex w-full items-center justify-between gap-3">
                 <button type="button" onClick={() => setSheetOpen(true)} className="min-w-0 flex-1 text-left">
-                  <p className="text-sm font-medium text-ink-primary">{label}</p>
+                  <p className="truncate text-sm font-medium text-ink-primary">{title}</p>
                   <p className="text-xs text-ink-muted">
                     {meal.meal_items.length} item{meal.meal_items.length === 1 ? "" : "s"} · tap to edit
                   </p>
@@ -105,7 +111,13 @@ export function MealCard({
       </Card>
 
       {meal.status === "ready" || meal.status === "manual" ? (
-        <CorrectionSheet mealId={meal.id} items={meal.meal_items} open={sheetOpen} onOpenChange={setSheetOpen} />
+        <CorrectionSheet
+          mealId={meal.id}
+          items={meal.meal_items}
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          onItemsChange={(items) => onItemsChange(meal.id, items)}
+        />
       ) : null}
     </>
   );

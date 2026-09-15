@@ -1446,3 +1446,62 @@ browser tool can't drive the native dialog), confirmed the row is
 actually gone from the `meals` table and the kcal total updates
 immediately. Checked at 360px — no overflow. `npx tsc --noEmit` and
 `npm run lint` clean.
+
+## §33 Meal card titles, and a real quantity control (2026-09-15)
+
+Two complaints from the same message, both about `EatPageClient`/
+`MealCard`/`CorrectionSheet`:
+
+**"It gives the food title on its own, like breakfast/lunch/snack —
+remove this, write the food name instead."** `MealCard`'s title was
+`meal.meal_type` capitalized — a photo of a sandwich logged at noon
+showed the card as "Lunch," never the food itself. Changed the title
+to the joined names of the meal's own `meal_items` ("Grilled chicken
+sandwich"), falling back to "Meal" only when there are none yet
+(processing/failed with nothing parsed out). `meal_type` still exists
+in the schema and is still set by the vision model server-side — it's
+just not the thing shown as a card's own name anymore. Fixed the same
+issue in Today's `RecentMeals` list, which had the identical
+`m.meal_type ?? "Meal"` pattern — needed adding `name` to that page's
+`meal_items(...)` select, since it wasn't being fetched before.
+
+**"I logged a sandwich from a photo — there's no way to say I ate 2 of
+them."** The correction sheet's portion control existed
+(`PortionControl`/`rescaleItemToGrams`) but was a 0.5×/1×/1.5×/2×
+button row scaling off the *current* grams each tap — capped at 2×,
+unlabeled as "quantity," and easy to miss as anything other than a
+generic portion tweak. Replaced it with an explicit `Qty` `Stepper`
+(the same −/+ component the session player uses) that scales from a
+baseline captured once when `ItemRow` first mounts — i.e. exactly the
+single "1 sandwich" the AI estimated — so quantity 3 always means
+"3× the original item," never a compounding multiply-again like the
+old buttons. Unbounded (no upper cap) and paired with the existing
+gram input for anyone who wants precise weight instead of a count.
+`rescaleItemByMultiplier` (the old buttons' helper) had no other
+callers, so it was deleted rather than left dead.
+
+**Found while testing the quantity feature, not asked for but
+directly in its path**: bumping quantity inside `CorrectionSheet`
+updated the sheet's own total instantly but left the *Eat page's*
+total and the closed `MealCard`'s kcal stale until a full reload —
+`CorrectionSheet` only ever wrote its own local state, never fed
+edits back to `EatPageClient`'s query cache. Threaded a new
+`onItemsChange(mealId, items)` callback down through `MealCard`, and
+`CorrectionSheet` now calls it with the full patched row set after
+every change/delete/add. `EatPageClient` patches just that one meal's
+`meal_items` in the cache — deliberately not
+`invalidateQueries`, which the project's own mutation policy already
+rules out here: a blanket refetch would overwrite any other meal
+that's still `processing` with its local `_previewUrl` blob preview,
+since the server row never carries that field.
+
+Verified live as a guest: seeded a single-item "photo" meal via SQL
+to stand in for an actual upload, bumped Qty to 3 (dispatched
+synthetic pointer events since the browser tool can't drive the
+Stepper's long-press repeat directly), confirmed the DB row scaled
+exactly 3× (660g / 1440 kcal / 84g protein / 135g carbs / 54g fat),
+and confirmed the outer list's total updated in the same render pass
+with the sheet still closing — no reload needed. Checked the Qty row
+at 360px (wraps to two lines under the gram input, no overflow).
+`npx tsc --noEmit`, `npm run lint`, and `npm run check` (27/27 across
+progression/streaks/form) all clean.

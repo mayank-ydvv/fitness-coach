@@ -30,25 +30,54 @@ function toCorrectionItem(row: MealItemRow): CorrectionItem {
   };
 }
 
+// The inverse of toCorrectionItem, merged onto the original row — keeps
+// columns CorrectionItem doesn't carry (meal_id, created_at, ...) intact.
+function toRow(original: MealItemRow, next: CorrectionItem): MealItemRow {
+  return {
+    ...original,
+    name: next.name,
+    portion_description: next.portionDescription,
+    grams: next.grams,
+    kcal: next.kcal,
+    kcal_low: next.kcalLow,
+    kcal_high: next.kcalHigh,
+    protein_g: next.proteinG,
+    carbs_g: next.carbsG,
+    fat_g: next.fatG,
+    fiber_g: next.fiberG,
+    confidence: next.confidence,
+    user_edited: true,
+  };
+}
+
 export function CorrectionSheet({
   mealId,
   items: initialItems,
   open,
   onOpenChange,
+  onItemsChange,
 }: {
   mealId: string;
   items: MealItemRow[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // Lets the Eat list's own total and card update the instant an edit
+  // lands here — without this, the sheet's own state was the only thing
+  // that knew about a change, and the list underneath went stale until
+  // a full reload. Fired with the full row shape (not CorrectionItem)
+  // so the parent can drop it straight into its query cache.
+  onItemsChange: (items: MealItemRow[]) => void;
 }) {
   const measure = useMeasure();
   const { push } = useToast();
-  const [items, setItems] = useState<CorrectionItem[]>(() => initialItems.map(toCorrectionItem));
+  const [rows, setRows] = useState<MealItemRow[]>(initialItems);
   const [addingManual, setAddingManual] = useState(false);
 
   useEffect(() => {
-    setItems(initialItems.map(toCorrectionItem));
+    setRows(initialItems);
   }, [initialItems]);
+
+  const items = rows.map(toCorrectionItem);
 
   // Low-confidence items sort to the top, labelled "Check this one" — spec §5.
   const sorted = [...items].sort((a, b) => (a.confidence ?? 0) - (b.confidence ?? 0));
@@ -56,8 +85,16 @@ export function CorrectionSheet({
   const totalLow = items.reduce((s, i) => s + (i.kcalLow ?? i.kcal), 0);
   const totalHigh = items.reduce((s, i) => s + (i.kcalHigh ?? i.kcal), 0);
 
+  function commit(newRows: MealItemRow[]) {
+    setRows(newRows);
+    onItemsChange(newRows);
+  }
+
   async function handleChange(next: CorrectionItem) {
-    setItems((prev) => prev.map((i) => (i.id === next.id ? next : i)));
+    const original = rows.find((r) => r.id === next.id);
+    if (!original) return;
+    commit(rows.map((r) => (r.id === next.id ? toRow(original, next) : r)));
+
     const res = await fetch(`/api/nutrition/meals/${mealId}/items`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -77,7 +114,7 @@ export function CorrectionSheet({
   }
 
   async function handleDelete(itemId: string) {
-    setItems((prev) => prev.filter((i) => i.id !== itemId));
+    commit(rows.filter((r) => r.id !== itemId));
     const res = await fetch(`/api/nutrition/meals/${mealId}/items?itemId=${itemId}`, { method: "DELETE" });
     if (!res.ok) push("Couldn't remove that item — try again.", "danger");
   }
@@ -93,7 +130,7 @@ export function CorrectionSheet({
       return;
     }
     const { item } = await res.json();
-    setItems((prev) => [...prev, toCorrectionItem(item)]);
+    commit([...rows, item]);
     setAddingManual(false);
   }
 

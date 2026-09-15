@@ -23,8 +23,8 @@ export function RecentMeals({ meals }: { meals: Meal[] }) {
     <Card className="flex flex-col gap-3">
       <p className="text-sm font-medium text-ink-primary">Today&apos;s meals</p>
       {meals.map((m) => (
-        <div key={m.id} className="flex items-center justify-between">
-          <span className="text-sm text-ink-primary">{m.name}</span>
+        <div key={m.id} className="flex items-center justify-between gap-3">
+          <span className="min-w-0 truncate text-sm text-ink-primary">{m.name}</span>
           {m.kcalLabel ? (
             <StatusDot tone="load-blue" label={m.kcalLabel} />
           ) : (

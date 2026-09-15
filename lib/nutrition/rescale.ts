@@ -34,14 +34,6 @@ export function rescaleItemToGrams<T extends RescalableItem>(item: T, newGrams: 
   };
 }
 
-/** The 0.5x/1x/1.5x/2x portion stepper — scales off the CURRENT grams, not
- * an original baseline, so repeated taps compose (1x -> 1.5x -> 1x is a
- * no-op, not a drift). */
-export function rescaleItemByMultiplier<T extends RescalableItem>(item: T, multiplier: number): T {
-  const currentGrams = item.grams ?? 100;
-  return rescaleItemToGrams(item, round(currentGrams * multiplier));
-}
-
 function round(n: number) {
   return Math.round(n);
 }

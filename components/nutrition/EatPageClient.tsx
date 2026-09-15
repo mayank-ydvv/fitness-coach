@@ -73,6 +73,16 @@ export function EatPageClient({
     }
   }
 
+  // Patches one meal's items in place — a targeted update, not
+  // invalidateQueries: a blanket refetch would also overwrite any other
+  // meal that's still `processing` with its local `_previewUrl` blob
+  // preview, since the server row never carries that field.
+  function patchMealItems(mealId: string, items: Tables<"meal_items">[]) {
+    queryClient.setQueryData<Meal[]>(qk.meals(date), (prev) =>
+      (prev ?? []).map((m) => (m.id === mealId ? { ...m, meal_items: items } : m)),
+    );
+  }
+
   function retryFor(mealId: string) {
     // A failed meal already has its photo in Storage — re-run analysis
     // rather than re-uploading, since the original blob isn't held
@@ -104,7 +114,7 @@ export function EatPageClient({
       ) : (
         <div className="flex flex-col gap-3">
           {(meals ?? []).map((meal) => (
-            <MealCard key={meal.id} meal={meal} onRetry={retryFor} onDelete={deleteMeal} />
+            <MealCard key={meal.id} meal={meal} onRetry={retryFor} onDelete={deleteMeal} onItemsChange={patchMealItems} />
           ))}
         </div>
       )}
